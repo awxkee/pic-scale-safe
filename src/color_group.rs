@@ -460,11 +460,44 @@ where
 
 impl<const COMPS: usize, J> MulAdd<ColorGroup<COMPS, J>, J> for ColorGroup<COMPS, J>
 where
-    J: Copy + MulAdd<J, Output = J> + Default + 'static,
+    J: Copy + MulAdd<J, Output = J> + Mul<J, Output = J> + Add<J, Output = J> + Default + 'static,
 {
     type Output = Self;
 
     #[inline(always)]
+    #[cfg(not(any(
+        target_feature = "fma",
+        all(target_feature = "neon", target_arch = "aarch64")
+    )))]
+    fn mul_add(self, a: ColorGroup<COMPS, J>, b: J) -> Self::Output {
+        if COMPS == 1 {
+            ColorGroup::from_components(a.r * b + self.r, self.g, self.b, self.a)
+        } else if COMPS == 2 {
+            ColorGroup::from_components(a.r * b + self.r, a.g * b + self.g, self.b, self.a)
+        } else if COMPS == 3 {
+            ColorGroup::from_components(
+                a.r * b + self.r,
+                a.g * b + self.g,
+                a.b * b + self.b,
+                self.a,
+            )
+        } else if COMPS == 4 {
+            ColorGroup::from_components(
+                a.r * b + self.r,
+                a.g * b + self.g,
+                a.b * b + self.b,
+                a.a * b + self.a,
+            )
+        } else {
+            panic!("Not implemented.");
+        }
+    }
+
+    #[inline(always)]
+    #[cfg(any(
+        target_feature = "fma",
+        all(target_feature = "neon", target_arch = "aarch64")
+    ))]
     fn mul_add(self, a: ColorGroup<COMPS, J>, b: J) -> Self::Output {
         if COMPS == 1 {
             ColorGroup::from_components(self.r.mul_add(b, a.r), self.g, self.b, self.a)

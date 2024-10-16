@@ -1,11 +1,14 @@
 # Fast and safe image scaling in Rust
 
-Example comparison time for downscale RGBA 4928x3279 `8 bit` image in two times.
+Example comparison time for downscale RGBA 4928x3279 `8 bit` image in 4 times.
 
-|           | Lanczos3 | Bilinear |
-|-----------|:--------:|:--------:|
-| pic-scale |  34.82   |  25.89   |
-| fir       |  53.02   |  34.47   |
+|                    | Lanczos3 | Bilinear |
+|--------------------|:--------:|:--------:|
+| pic-scale(aarch64) |  34.82   |  25.89   |
+| fir(aarch64)       |  53.02   |  34.47   |
+| image(x86)         |  192.52  |  89.87   |
+| pic-scale(x86)     |  39.76   |  27.63   |
+| fir(x86)           |  15.75   |   9.04   |
 
 Example comparison time for downscale RGB 4928x3279 `8 bit` image in two times.
 

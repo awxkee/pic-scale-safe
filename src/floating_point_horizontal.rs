@@ -30,6 +30,7 @@ use crate::color_group::ColorGroup;
 use crate::filter_weights::FilterWeights;
 use crate::mixed_storage::MixedStorage;
 use num_traits::{AsPrimitive, Float, MulAdd};
+use std::ops::{Add, Mul};
 
 #[inline(always)]
 /// # Generics
@@ -38,7 +39,14 @@ use num_traits::{AsPrimitive, Float, MulAdd};
 /// `F` - filter floating type
 pub(crate) fn convolve_row_handler_floating_point<
     T: Copy + 'static + AsPrimitive<J> + Default,
-    J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
+    J: Copy
+        + 'static
+        + AsPrimitive<T>
+        + MulAdd<J, Output = J>
+        + Mul<J, Output = J>
+        + Add<J, Output = J>
+        + Default
+        + MixedStorage<T>,
     F: Copy + 'static + Float + AsPrimitive<J>,
     const CHANNELS: usize,
 >(
@@ -83,7 +91,14 @@ pub(crate) fn convolve_row_handler_floating_point<
 /// `F` - filter floating type
 pub(crate) fn convolve_row_handler_floating_point_4<
     T: Copy + 'static + AsPrimitive<J> + Default,
-    J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
+    J: Copy
+        + 'static
+        + AsPrimitive<T>
+        + MulAdd<J, Output = J>
+        + Mul<J, Output = J>
+        + Add<J, Output = J>
+        + Default
+        + MixedStorage<T>,
     F: Copy + 'static + Float + AsPrimitive<J>,
     const CHANNELS: usize,
 >(

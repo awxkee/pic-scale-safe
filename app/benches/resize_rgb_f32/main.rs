@@ -32,7 +32,7 @@ use fast_image_resize::images::Image;
 use fast_image_resize::FilterType::{Bilinear, Lanczos3};
 use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::{EncodableLayout, GenericImageView, ImageReader};
-use spic_scale::{resize_floating_point, ImageSize, ResamplingFunction};
+use pic_scale_safe::{resize_floating_point, ImageSize, ResamplingFunction};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let img = ImageReader::open("../assets/nasa-4928x3279.png")
