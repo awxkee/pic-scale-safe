@@ -49,8 +49,10 @@ mod resize_floating_point;
 mod resize_nearest;
 mod sampler;
 mod saturate_narrow;
+mod alpha;
 
 pub use image_size::ImageSize;
 pub use resize_fixed_point::resize_fixed_point;
 pub use resize_floating_point::resize_floating_point;
 pub use sampler::ResamplingFunction;
+pub use alpha::*;
