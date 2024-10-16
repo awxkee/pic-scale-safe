@@ -1,5 +1,5 @@
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-Ctarget-cpu=native"]
 
-[target.x86_64-pc-wundows-msvc]
-rustflags = ["-C target-cpu=native"]
+#[target.x86_64-pc-wundows-msvc]
+#rustflags = ["-C target-cpu=native"]

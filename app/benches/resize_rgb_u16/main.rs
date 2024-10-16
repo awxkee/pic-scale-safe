@@ -31,7 +31,8 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use fast_image_resize::images::Image;
 use fast_image_resize::FilterType::{Bilinear, Lanczos3};
 use fast_image_resize::{PixelType, ResizeAlg, ResizeOptions, Resizer};
-use image::{EncodableLayout, GenericImageView, ImageReader};
+use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
+use image::imageops::FilterType;
 use pic_scale_safe::{resize_fixed_point, ImageSize, ResamplingFunction};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
@@ -41,6 +42,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         .unwrap();
     let dimensions = img.dimensions();
     let source_bytes = img.to_rgb8();
+
+    let rgb16 = img.to_rgb16();
+    let rgb16_dyn_image = DynamicImage::ImageRgb16(rgb16);
+
     let source_8bit = source_bytes.as_bytes();
     let src_bytes = source_8bit
         .iter()
@@ -52,11 +57,17 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             _ = resize_fixed_point::<u16, i64, 3>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
                 8,
                 ResamplingFunction::Lanczos3,
             )
             .unwrap();
+        })
+    });
+
+    c.bench_function("Image RGB: Lanczos 3", |b| {
+        b.iter(|| {
+            _ = rgb16_dyn_image.clone().resize_exact(dimensions.0 / 4, dimensions.1  / 4, FilterType::Lanczos3);
         })
     });
 
@@ -73,7 +84,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::U16x3;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
             #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
@@ -97,11 +108,17 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             _ = resize_fixed_point::<u16, i64, 3>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
                 8,
                 ResamplingFunction::Bilinear,
             )
             .unwrap();
+        })
+    });
+
+    c.bench_function("Image RGB16: Bilinear", |b| {
+        b.iter(|| {
+            _ = rgb16_dyn_image.clone().resize_exact(dimensions.0 / 4, dimensions.1  / 4, FilterType::Triangle);
         })
     });
 
@@ -111,7 +128,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::U16x3;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
             #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
