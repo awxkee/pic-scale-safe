@@ -30,7 +30,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use fast_image_resize::images::Image;
 use fast_image_resize::FilterType::{Bilinear, Lanczos3};
-use fast_image_resize::{PixelType, ResizeAlg, ResizeOptions, Resizer};
+use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::{EncodableLayout, GenericImageView, ImageReader};
 use pic_scale_safe::{resize_fixed_point, ImageSize, ResamplingFunction};
 

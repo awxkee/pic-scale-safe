@@ -275,13 +275,7 @@ pub(crate) fn column_handler_fixed_point<
 
     while cx + 64 < total_width {
         convolve_column_handler_fixed_point_direct_buffer_four::<T, J, 16>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 64;
@@ -289,13 +283,7 @@ pub(crate) fn column_handler_fixed_point<
 
     while cx + 32 < total_width {
         convolve_column_handler_fixed_point_direct_buffer_double::<T, J, 16>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 32;
@@ -303,13 +291,7 @@ pub(crate) fn column_handler_fixed_point<
 
     while cx + 16 < total_width {
         convolve_column_handler_fixed_point_direct_buffer::<T, J, 16>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 16;
@@ -317,13 +299,7 @@ pub(crate) fn column_handler_fixed_point<
 
     while cx + 8 < total_width {
         convolve_column_handler_fixed_point_direct_buffer::<T, J, 8>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 8;
@@ -331,19 +307,12 @@ pub(crate) fn column_handler_fixed_point<
 
     while cx + 1 < total_width {
         convolve_column_handler_fixed_point_direct_buffer::<T, J, 1>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 1;
     }
 }
-
 
 /// # Generics
 /// `T` - template buffer type
@@ -370,13 +339,7 @@ pub(crate) fn column_handler_fixed_point_max_8<
 
     while cx + 16 < total_width {
         convolve_column_handler_fixed_point_direct_buffer_double::<T, J, 8>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 16;
@@ -384,13 +347,7 @@ pub(crate) fn column_handler_fixed_point_max_8<
 
     while cx + 8 < total_width {
         convolve_column_handler_fixed_point_direct_buffer::<T, J, 8>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 8;
@@ -398,13 +355,7 @@ pub(crate) fn column_handler_fixed_point_max_8<
 
     while cx + 1 < total_width {
         convolve_column_handler_fixed_point_direct_buffer::<T, J, 1>(
-            src,
-            src_stride,
-            dst,
-            weight,
-            bounds,
-            bit_depth,
-            cx,
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
 
         cx += 1;

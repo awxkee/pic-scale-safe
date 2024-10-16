@@ -30,9 +30,9 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use fast_image_resize::images::Image;
 use fast_image_resize::FilterType::{Bilinear, Lanczos3};
-use fast_image_resize::{PixelType, ResizeAlg, ResizeOptions, Resizer};
-use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
+use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::imageops::FilterType;
+use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
 use pic_scale_safe::{resize_floating_point, ImageSize, ResamplingFunction};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
@@ -67,7 +67,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Image RGBAf32: Lanczos 3", |b| {
         b.iter(|| {
-            _ = rgbaf32_dyn_image.clone().resize_exact(dimensions.0 / 4, dimensions.1  / 4, FilterType::Lanczos3);
+            _ = rgbaf32_dyn_image.clone().resize_exact(
+                dimensions.0 / 4,
+                dimensions.1 / 4,
+                FilterType::Lanczos3,
+            );
         })
     });
 
@@ -118,13 +122,15 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-
     c.bench_function("Image RGBAf32: Bilinear", |b| {
         b.iter(|| {
-            _ = rgbaf32_dyn_image.clone().resize_exact(dimensions.0 / 4, dimensions.1  / 4, FilterType::Triangle);
+            _ = rgbaf32_dyn_image.clone().resize_exact(
+                dimensions.0 / 4,
+                dimensions.1 / 4,
+                FilterType::Triangle,
+            );
         })
     });
-
 
     c.bench_function("Fast image resize RGBAf32: Bilinear", |b| {
         let mut vc = transmuted_form.to_vec();

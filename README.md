@@ -8,8 +8,9 @@ cargo bench --bench resize_rgba --manifest-path ./app/Cargo.toml
 
 |                    | Lanczos3 | Bilinear |
 |--------------------|:--------:|:--------:|
-| pic-scale(aarch64) |  34.82   |  25.89   |
-| fir(aarch64)       |  53.02   |  34.47   |
+| image(aarch64)     |  121.19  |  48.89   |
+| pic-scale(aarch64) |  26.90   |  15.13   |
+| fir(aarch64)       |  25.93   |  11.30   |
 | image(x86)         |  192.52  |  89.87   |
 | pic-scale(x86)     |  31.92   |  22.76   |
 | fir(x86)           |  15.53   |   9.04   |
@@ -62,13 +63,14 @@ Example comparison time for downscale RGBA 4928x3279 `f32` image in two times.
 cargo bench --bench resize_rgba_f32 --manifest-path ./app/Cargo.toml
 ```
 
-|                | Lanczos3 | Bilinear |
-|----------------|:--------:|:--------:|
-| pic-scale      |  46.46   |  36.29   |
-| fir            |  105.60  |  38.37   |
-| image(x86)     |  164.04  |  98.90   |
-| pic-scale(x86) |  57.39   |  43.84   |
-| fir(x86)       |  51.08   |  29.92   |
+|                    | Lanczos3 | Bilinear |
+|--------------------|:--------:|:--------:|
+| image(aarch64)     |  99.00   |  47.67   |
+| pic-scale(aarch64) |  60.34   |  19.16   |
+| fir(aarch64)       |  105.60  |  37.75   |
+| image(x86)         |  164.04  |  98.90   |
+| pic-scale(x86)     |  57.39   |  43.84   |
+| fir(x86)           |  51.08   |  29.92   |
 
 This project is licensed under either of
 

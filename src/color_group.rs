@@ -71,6 +71,75 @@ where
     }
 }
 
+#[macro_export]
+macro_rules! fast_load_color_group {
+    ($store: expr, $channels: expr) => {{
+        if $channels == 1 {
+            ColorGroup {
+                r: $store[0].as_(),
+                g: 0.as_(),
+                b: 0.as_(),
+                a: 0.as_(),
+            }
+        } else if $channels == 2 {
+            ColorGroup {
+                r: $store[0].as_(),
+                g: $store[1].as_(),
+                b: 0.as_(),
+                a: 0.as_(),
+            }
+        } else if $channels == 3 {
+            ColorGroup {
+                r: $store[0].as_(),
+                g: $store[1].as_(),
+                b: $store[2].as_(),
+                a: 0.as_(),
+            }
+        } else if $channels == 4 {
+            ColorGroup {
+                r: $store[0].as_(),
+                g: $store[1].as_(),
+                b: $store[2].as_(),
+                a: $store[3].as_(),
+            }
+        } else {
+            panic!("Not implemented.")
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! fast_store_color_group {
+    ($color_group: expr, $store: expr, $components: expr) => {{
+        $store[0] = $color_group.r;
+        if $components > 1 {
+            $store[1] = $color_group.g;
+        }
+        if $components > 2 {
+            $store[2] = $color_group.b;
+        }
+        if $components == 4 {
+            $store[3] = $color_group.a;
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! fast_mixed_store_color_group {
+    ($color_group: expr, $store: expr, $components: expr, $bit_depth: expr) => {{
+        $store[0] = $color_group.r.to_mixed($bit_depth);
+        if $components > 1 {
+            $store[1] = $color_group.g.to_mixed($bit_depth);
+        }
+        if $components > 2 {
+            $store[2] = $color_group.b.to_mixed($bit_depth);
+        }
+        if $components == 4 {
+            $store[3] = $color_group.a.to_mixed($bit_depth);
+        }
+    }};
+}
+
 impl<const COMPS: usize, J> ColorGroup<COMPS, J>
 where
     J: Copy + Default + 'static,

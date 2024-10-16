@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use image::{GenericImageView, ImageReader};
-use pic_scale_safe::{resize_fixed_point, ImageSize, ResamplingFunction};
+use pic_scale_safe::{resize_fixed_point, resize_floating_point, ImageSize, ResamplingFunction};
 use std::time::Instant;
 
 fn main() {

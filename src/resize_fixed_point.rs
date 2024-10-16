@@ -136,7 +136,7 @@ where
         working_slice_ref = &transient;
     }
 
-    println!("Vertical time {:?}", start.elapsed());
+    // println!("Vertical time {:?}", start.elapsed());
 
     let start = Instant::now();
 
@@ -164,7 +164,7 @@ where
         transient = transient2;
     }
 
-    println!("Horizontal time {:?}", start.elapsed());
+    // println!("Horizontal time {:?}", start.elapsed());
 
     assert_eq!(
         transient.len(),
