@@ -150,9 +150,9 @@ pub fn premultiply_rgba_f32(in_place: &mut [f32]) {
         let mut r = chunk[0];
         let mut g = chunk[1];
         let mut b = chunk[2];
-        r = r * a;
-        g = g * a;
-        b = b * a;
+        r *= a;
+        g *= a;
+        b *= a;
         chunk[0] = r;
         chunk[1] = g;
         chunk[2] = b;
@@ -179,9 +179,9 @@ pub fn unpremultiply_rgba_f32(in_place: &mut [f32]) {
             g = 0.;
             b = 0.;
         } else {
-            r = r / a;
-            g = g / a;
-            b = b / a;
+            r /= a;
+            g /= a;
+            b /= a;
         }
         chunk[0] = r;
         chunk[1] = g;

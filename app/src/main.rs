@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use image::{GenericImageView, ImageReader};
-use pic_scale_safe::{resize_floating_point, ImageSize, ResamplingFunction};
+use pic_scale_safe::{resize_rgb8, ImageSize, ResamplingFunction};
 use std::time::Instant;
 
 fn main() {
@@ -36,34 +36,31 @@ fn main() {
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgba16();
+    let transient = img.to_rgb8();
 
     let start = Instant::now();
 
-    let transient_bytes = transient.iter().map(|&x| (x >> 4)).collect::<Vec<_>>();
-
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
-    let dst_size = ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2);
+    let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
 
-    let resized = resize_floating_point::<u16, f32, f32, 4>(
-        &transient_bytes,
+    let resized = resize_rgb8(
+        &transient,
         src_size,
         dst_size,
-        12,
-        ResamplingFunction::Lanczos3,
+        ResamplingFunction::Ginseng,
     )
     .unwrap();
 
     println!("Working time {:?}", start.elapsed());
 
-    let shifted = resized.iter().map(|&x| (x >> 4) as u8).collect::<Vec<_>>();
+    // let shifted = resized.iter().map(|&x| (x >> 4) as u8).collect::<Vec<_>>();
 
     image::save_buffer(
-        "converted.png",
-        &shifted,
+        "converted.jpg",
+        &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgba8,
+        image::ColorType::Rgb8,
     )
     .unwrap();
 }

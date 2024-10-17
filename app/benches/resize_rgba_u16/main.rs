@@ -33,7 +33,7 @@ use fast_image_resize::FilterType::{Bilinear, Lanczos3};
 use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::imageops::FilterType;
 use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
-use pic_scale_safe::{resize_floating_point, ImageSize, ResamplingFunction};
+use pic_scale_safe::{resize_floating_point, resize_rgba16, ImageSize, ResamplingFunction};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let img = ImageReader::open("../assets/nasa-4928x3279.png")
@@ -54,7 +54,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Pic scale RGBA16: Lanczos 3", |b| {
         b.iter(|| {
-            _ = resize_floating_point::<u16, f32, f32, 4>(
+            _ = resize_rgba16(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
                 ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
@@ -71,7 +71,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             .map(|&x| (x as u16) << 2)
             .collect::<Vec<_>>();
         b.iter(|| {
-            _ = resize_floating_point::<u16, f32, f32, 4>(
+            _ = resize_rgba16(
                 &image_10_bit,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
                 ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
@@ -88,7 +88,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             .map(|&x| (x as u16) << 2)
             .collect::<Vec<_>>();
         b.iter(|| {
-            _ = resize_floating_point::<u16, f32, f32, 4>(
+            _ = resize_rgba16(
                 &image_10_bit,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
                 ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
@@ -142,7 +142,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Pic scale RGBA16: Bilinear", |b| {
         b.iter(|| {
-            _ = resize_floating_point::<u16, f32, f32, 4>(
+            _ = resize_rgba16(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
                 ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
