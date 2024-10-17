@@ -57,9 +57,43 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             _ = resize_fixed_point::<u16, i64, 4>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
                 8,
                 ResamplingFunction::Lanczos3,
+            )
+            .unwrap();
+        })
+    });
+
+    c.bench_function("Pic scale RGBA10: Lanczos 3", |b| {
+        let image_10_bit = source_8bit
+            .iter()
+            .map(|&x| (x as u16) << 2)
+            .collect::<Vec<_>>();
+        b.iter(|| {
+            _ = resize_fixed_point::<u16, i32, 4>(
+                &image_10_bit,
+                ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
+                8,
+                ResamplingFunction::Lanczos3,
+            )
+            .unwrap();
+        })
+    });
+
+    c.bench_function("Pic scale RGBA10: Bilinear", |b| {
+        let image_10_bit = source_8bit
+            .iter()
+            .map(|&x| (x as u16) << 2)
+            .collect::<Vec<_>>();
+        b.iter(|| {
+            _ = resize_fixed_point::<u16, i32, 4>(
+                &image_10_bit,
+                ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
+                8,
+                ResamplingFunction::Bilinear,
             )
             .unwrap();
         })

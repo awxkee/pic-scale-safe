@@ -58,7 +58,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("Image RGB: Lanczos 3", |b| {
+    c.bench_function("Image RGB: Bilinear", |b| {
         b.iter(|| {
             _ = dyn_image.clone().resize_exact(
                 dimensions.0 / 4,

@@ -36,28 +36,27 @@ fn main() {
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgba8();
+    let transient = img.to_rgba16();
 
     let start = Instant::now();
+
+    let transient_bytes = transient.iter().map(|&x| (x >> 4)).collect::<Vec<_>>();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     let dst_size = ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2);
 
-    let resized = resize_fixed_point::<u8, i32, 4>(
-        &transient,
+    let resized = resize_fixed_point::<u16, i32, 4>(
+        &transient_bytes,
         src_size,
         dst_size,
-        8,
+        12,
         ResamplingFunction::Lanczos3,
     )
     .unwrap();
 
     println!("Working time {:?}", start.elapsed());
 
-    let shifted = resized
-        .iter()
-        .map(|&x| x as u8)
-        .collect::<Vec<_>>();
+    let shifted = resized.iter().map(|&x| (x >> 4) as u8).collect::<Vec<_>>();
 
     image::save_buffer(
         "converted.png",
