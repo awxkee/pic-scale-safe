@@ -12,7 +12,7 @@ cargo bench --bench resize_rgba --manifest-path ./app/Cargo.toml
 | pic-scale(aarch64) |  26.90   |  15.13   |
 | fir(aarch64)       |  25.93   |  11.30   |
 | image(x86)         |  192.52  |  88.63   |
-| pic-scale(x86)     |  26.76   |  19.18   |
+| pic-scale(x86)     |  49.79   |  35.98   |
 | fir(x86)           |  42.89   |  24.13   |
 
 Example comparison time for downscale RGB 4928x3279 `8 bit` image in 4 times.
