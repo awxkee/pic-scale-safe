@@ -50,7 +50,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             _ = resize_fixed_point::<u8, i32, 3>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
                 8,
                 ResamplingFunction::Lanczos3,
             )
@@ -74,10 +74,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::U8x3;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }
@@ -98,7 +97,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             _ = resize_fixed_point::<u8, i32, 3>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
                 8,
                 ResamplingFunction::Bilinear,
             )
@@ -106,7 +105,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("Image RGB: Lanczos 3", |b| {
+    c.bench_function("Image RGB: Bilinear", |b| {
         b.iter(|| {
             _ = dyn_image.clone().resize_exact(
                 dimensions.0 / 4,
@@ -122,10 +121,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::U8x3;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }

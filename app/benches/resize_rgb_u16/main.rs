@@ -91,7 +91,6 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }
@@ -139,7 +138,6 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }
