@@ -29,7 +29,11 @@
 use crate::color_group::ColorGroup;
 use crate::filter_weights::FilterBounds;
 use crate::mixed_storage::MixedStorage;
+use crate::{
+    fast_load_color_group, fast_load_color_group_with_offset, fast_mixed_store_color_group,
+};
 use num_traits::{AsPrimitive, Float, MulAdd};
+use std::ops::{Add, Mul};
 
 #[inline(always)]
 /// # Generics
@@ -38,7 +42,14 @@ use num_traits::{AsPrimitive, Float, MulAdd};
 /// `F` - filter floating type
 pub(crate) fn convolve_column_handler_floating_point_4<
     T: Copy + 'static + AsPrimitive<J> + Default,
-    J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
+    J: Copy
+        + 'static
+        + AsPrimitive<T>
+        + MulAdd<J, Output = J>
+        + Mul<J, Output = J>
+        + Add<J, Output = J>
+        + Default
+        + MixedStorage<T>,
     F: Copy + 'static + AsPrimitive<J>,
     const CHANNELS: usize,
 >(
@@ -65,10 +76,10 @@ pub(crate) fn convolve_column_handler_floating_point_4<
         let offset = src_stride * py + v_start_px;
         let src_ptr = &src[offset..(offset + CHANNELS * 4)];
 
-        let new_px0 = ColorGroup::<CHANNELS, J>::from_slice(&src_ptr[0..CHANNELS]);
-        let new_px1 = ColorGroup::<CHANNELS, J>::from_slice(&src_ptr[CHANNELS..CHANNELS * 2]);
-        let new_px2 = ColorGroup::<CHANNELS, J>::from_slice(&src_ptr[CHANNELS * 2..CHANNELS * 3]);
-        let new_px3 = ColorGroup::<CHANNELS, J>::from_slice(&src_ptr[CHANNELS * 3..CHANNELS * 4]);
+        let new_px0 = fast_load_color_group_with_offset!(src_ptr, CHANNELS, 0);
+        let new_px1 = fast_load_color_group_with_offset!(src_ptr, CHANNELS, CHANNELS);
+        let new_px2 = fast_load_color_group_with_offset!(src_ptr, CHANNELS, CHANNELS * 2);
+        let new_px3 = fast_load_color_group_with_offset!(src_ptr, CHANNELS, CHANNELS * 3);
 
         sums0 = sums0.mul_add(new_px0, weight);
         sums1 = sums1.mul_add(new_px1, weight);
@@ -78,10 +89,25 @@ pub(crate) fn convolve_column_handler_floating_point_4<
 
     let v_dst = &mut dst[v_start_px..(v_start_px + CHANNELS * 4)];
 
-    sums0.to_mixed_store(v_dst, bit_depth);
-    sums1.to_mixed_store(&mut v_dst[CHANNELS..CHANNELS * 2], bit_depth);
-    sums2.to_mixed_store(&mut v_dst[CHANNELS * 2..CHANNELS * 3], bit_depth);
-    sums3.to_mixed_store(&mut v_dst[CHANNELS * 3..CHANNELS * 4], bit_depth);
+    fast_mixed_store_color_group!(sums0, &mut v_dst[..CHANNELS], CHANNELS, bit_depth);
+    fast_mixed_store_color_group!(
+        sums1,
+        &mut v_dst[CHANNELS..CHANNELS * 2],
+        CHANNELS,
+        bit_depth
+    );
+    fast_mixed_store_color_group!(
+        sums1,
+        &mut v_dst[CHANNELS * 2..CHANNELS * 3],
+        CHANNELS,
+        bit_depth
+    );
+    fast_mixed_store_color_group!(
+        sums1,
+        &mut v_dst[CHANNELS * 3..CHANNELS * 4],
+        CHANNELS,
+        bit_depth
+    );
 }
 
 #[inline(always)]
@@ -91,7 +117,14 @@ pub(crate) fn convolve_column_handler_floating_point_4<
 /// `F` - kernel floating type
 pub(crate) fn convolve_column_handler_floating_point<
     T: Copy + 'static + AsPrimitive<J> + Default,
-    J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + MixedStorage<T> + Default,
+    J: Copy
+        + 'static
+        + AsPrimitive<T>
+        + MulAdd<J, Output = J>
+        + Mul<J, Output = J>
+        + Add<J, Output = J>
+        + MixedStorage<T>
+        + Default,
     F: Copy + 'static + Float + AsPrimitive<J>,
     const CHANNELS: usize,
 >(
@@ -115,12 +148,17 @@ pub(crate) fn convolve_column_handler_floating_point<
         let offset = src_stride * py + v_start_px;
         let src_ptr = &src[offset..(offset + CHANNELS)];
 
-        let new_px0 = ColorGroup::<CHANNELS, J>::from_slice(&src_ptr[0..CHANNELS]);
+        let new_px0 = fast_load_color_group!(src_ptr, CHANNELS);
 
         sums0 = sums0.mul_add(new_px0, weight);
     }
 
-    sums0.to_mixed_store(&mut dst[v_start_px..(v_start_px + CHANNELS)], bit_depth);
+    fast_mixed_store_color_group!(
+        sums0,
+        &mut dst[v_start_px..(v_start_px + CHANNELS)],
+        CHANNELS,
+        bit_depth
+    );
 }
 
 #[inline(always)]
@@ -129,7 +167,14 @@ pub(crate) fn convolve_column_handler_floating_point<
 /// `J` - accumulator type
 pub(crate) fn column_handler_floating_point<
     T: Copy + 'static + AsPrimitive<J> + Default,
-    J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + MixedStorage<T> + Default,
+    J: Copy
+        + 'static
+        + AsPrimitive<T>
+        + MulAdd<J, Output = J>
+        + Mul<J, Output = J>
+        + Add<J, Output = J>
+        + MixedStorage<T>
+        + Default,
     F: Copy + 'static + Float + AsPrimitive<J>,
     const COMPONENTS: usize,
 >(

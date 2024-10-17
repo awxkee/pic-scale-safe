@@ -29,7 +29,9 @@
 use crate::color_group::ColorGroup;
 use crate::filter_weights::FilterWeights;
 use crate::mixed_storage::MixedStorage;
+use crate::{fast_load_color_group, fast_mixed_store_color_group};
 use num_traits::{AsPrimitive, Float, MulAdd};
+use std::ops::{Add, Mul};
 
 #[inline(always)]
 /// # Generics
@@ -38,7 +40,14 @@ use num_traits::{AsPrimitive, Float, MulAdd};
 /// `F` - filter floating type
 pub(crate) fn convolve_row_handler_floating_point<
     T: Copy + 'static + AsPrimitive<J> + Default,
-    J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
+    J: Copy
+        + 'static
+        + AsPrimitive<T>
+        + MulAdd<J, Output = J>
+        + Mul<J, Output = J>
+        + Add<J, Output = J>
+        + Default
+        + MixedStorage<T>,
     F: Copy + 'static + Float + AsPrimitive<J>,
     const CHANNELS: usize,
 >(
@@ -50,7 +59,7 @@ pub(crate) fn convolve_row_handler_floating_point<
     i32: AsPrimitive<J>,
 {
     for ((chunk, &bounds), weights) in dst
-        .chunks_mut(CHANNELS)
+        .chunks_exact_mut(CHANNELS)
         .zip(filter_weights.bounds.iter())
         .zip(
             filter_weights
@@ -62,17 +71,21 @@ pub(crate) fn convolve_row_handler_floating_point<
 
         let start_x = bounds.start;
 
-        for (j, &k_weight) in weights.iter().take(bounds.size).enumerate() {
-            let px = (start_x + j) * CHANNELS;
+        let px = start_x * CHANNELS;
+
+        let src_ptr0 = &src[px..(px + bounds.size * CHANNELS)];
+
+        for (&k_weight, src) in weights
+            .iter()
+            .zip(src_ptr0.chunks_exact(CHANNELS))
+            .take(bounds.size)
+        {
             let weight: J = k_weight.as_();
-
-            let src_ptr = &src[px..(px + CHANNELS)];
-
-            let new_px = ColorGroup::<CHANNELS, J>::from_slice(src_ptr);
+            let new_px = fast_load_color_group!(src, CHANNELS);
             sums = sums.mul_add(new_px, weight);
         }
 
-        sums.to_mixed_store(&mut chunk[0..CHANNELS], bit_depth);
+        fast_mixed_store_color_group!(sums, chunk, CHANNELS, bit_depth);
     }
 }
 
@@ -83,7 +96,14 @@ pub(crate) fn convolve_row_handler_floating_point<
 /// `F` - filter floating type
 pub(crate) fn convolve_row_handler_floating_point_4<
     T: Copy + 'static + AsPrimitive<J> + Default,
-    J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
+    J: Copy
+        + 'static
+        + AsPrimitive<T>
+        + MulAdd<J, Output = J>
+        + Mul<J, Output = J>
+        + Add<J, Output = J>
+        + Default
+        + MixedStorage<T>,
     F: Copy + 'static + Float + AsPrimitive<J>,
     const CHANNELS: usize,
 >(
@@ -100,10 +120,10 @@ pub(crate) fn convolve_row_handler_floating_point_4<
     let (row1_ref, rest) = rest.split_at_mut(dst_stride);
     let (row2_ref, row3_ref) = rest.split_at_mut(dst_stride);
 
-    let iter_row0 = row0_ref.chunks_mut(CHANNELS);
-    let iter_row1 = row1_ref.chunks_mut(CHANNELS);
-    let iter_row2 = row2_ref.chunks_mut(CHANNELS);
-    let iter_row3 = row3_ref.chunks_mut(CHANNELS);
+    let iter_row0 = row0_ref.chunks_exact_mut(CHANNELS);
+    let iter_row1 = row1_ref.chunks_exact_mut(CHANNELS);
+    let iter_row2 = row2_ref.chunks_exact_mut(CHANNELS);
+    let iter_row3 = row3_ref.chunks_exact_mut(CHANNELS);
 
     for (((((chunk0, chunk1), chunk2), chunk3), &bounds), weights) in iter_row0
         .zip(iter_row1)
@@ -122,20 +142,26 @@ pub(crate) fn convolve_row_handler_floating_point_4<
         let mut sums3 = ColorGroup::<CHANNELS, J>::dup(0.as_());
 
         let start_x = bounds.start;
+        let px = start_x * CHANNELS;
+        let src_ptr0 = &src[px..(px + bounds.size * CHANNELS)];
+        let src_ptr1 = &src[(px + src_stride)..(px + src_stride + bounds.size * CHANNELS)];
+        let src_ptr2 = &src[(px + src_stride * 2)..(px + src_stride * 2 + bounds.size * CHANNELS)];
+        let src_ptr3 = &src[(px + src_stride * 3)..(px + src_stride * 3 + bounds.size * CHANNELS)];
 
-        for (j, &k_weight) in weights.iter().take(bounds.size).skip(1).enumerate() {
-            let px = (start_x + j) * CHANNELS;
+        for ((((&k_weight, src0), src1), src2), src3) in weights
+            .iter()
+            .zip(src_ptr0.chunks_exact(CHANNELS))
+            .zip(src_ptr1.chunks_exact(CHANNELS))
+            .zip(src_ptr2.chunks_exact(CHANNELS))
+            .zip(src_ptr3.chunks_exact(CHANNELS))
+            .take(bounds.size)
+        {
             let weight: J = k_weight.as_();
 
-            let src_ptr0 = &src[px..(px + CHANNELS)];
-            let src_ptr1 = &src[(px + src_stride)..(px + src_stride + CHANNELS)];
-            let src_ptr2 = &src[(px + src_stride * 2)..(px + src_stride * 2 + CHANNELS)];
-            let src_ptr3 = &src[(px + src_stride * 3)..(px + src_stride * 3 + CHANNELS)];
-
-            let new_px0 = ColorGroup::<CHANNELS, J>::from_slice(src_ptr0);
-            let new_px1 = ColorGroup::<CHANNELS, J>::from_slice(src_ptr1);
-            let new_px2 = ColorGroup::<CHANNELS, J>::from_slice(src_ptr2);
-            let new_px3 = ColorGroup::<CHANNELS, J>::from_slice(src_ptr3);
+            let new_px0 = fast_load_color_group!(src0, CHANNELS);
+            let new_px1 = fast_load_color_group!(src1, CHANNELS);
+            let new_px2 = fast_load_color_group!(src2, CHANNELS);
+            let new_px3 = fast_load_color_group!(src3, CHANNELS);
 
             sums0 = sums0.mul_add(new_px0, weight);
             sums1 = sums1.mul_add(new_px1, weight);
@@ -143,9 +169,9 @@ pub(crate) fn convolve_row_handler_floating_point_4<
             sums3 = sums3.mul_add(new_px3, weight);
         }
 
-        sums0.to_mixed_store(&mut chunk0[0..CHANNELS], bit_depth);
-        sums1.to_mixed_store(&mut chunk1[0..CHANNELS], bit_depth);
-        sums2.to_mixed_store(&mut chunk2[0..CHANNELS], bit_depth);
-        sums3.to_mixed_store(&mut chunk3[0..CHANNELS], bit_depth);
+        fast_mixed_store_color_group!(sums0, chunk0, CHANNELS, bit_depth);
+        fast_mixed_store_color_group!(sums1, chunk1, CHANNELS, bit_depth);
+        fast_mixed_store_color_group!(sums2, chunk2, CHANNELS, bit_depth);
+        fast_mixed_store_color_group!(sums3, chunk3, CHANNELS, bit_depth);
     }
 }

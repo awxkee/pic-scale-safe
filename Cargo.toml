@@ -1,7 +1,7 @@
 workspace = { members = ["app"] }
 
 [package]
-name = "spic-scale"
+name = "pic-scale-safe"
 version = "0.1.0"
 edition = "2021"
 

@@ -30,7 +30,7 @@ use crate::filter_weights::{FilterBounds, FilterWeights};
 use crate::fixed_point_horizontal::{
     convolve_row_handler_fixed_point, convolve_row_handler_fixed_point_4,
 };
-use crate::fixed_point_vertical::column_handler_fixed_point;
+use crate::fixed_point_vertical::{column_handler_fixed_point, column_handler_fixed_point_max_8};
 use crate::floating_point_horizontal::{
     convolve_row_handler_floating_point, convolve_row_handler_floating_point_4,
 };
@@ -38,7 +38,7 @@ use crate::floating_point_vertical::column_handler_floating_point;
 use crate::mixed_storage::MixedStorage;
 use crate::saturate_narrow::SaturateNarrow;
 use num_traits::{AsPrimitive, Float, MulAdd};
-use std::ops::{AddAssign, Mul};
+use std::ops::{Add, AddAssign, Mul};
 
 pub trait ColumnHandlerFixedPoint<T, J>
 where
@@ -214,7 +214,7 @@ where
         weight: &[i16],
         bit_depth: u32,
     ) {
-        column_handler_fixed_point::<u16, J, COMPONENTS>(
+        column_handler_fixed_point_max_8::<u16, J, COMPONENTS>(
             dst_width, bounds, src, dst, src_stride, weight, bit_depth,
         );
     }
@@ -248,7 +248,9 @@ macro_rules! default_floating_column_handler {
                 + AsPrimitive<$column_type>
                 + MulAdd<J, Output = J>
                 + MixedStorage<$column_type>
-                + Default,
+                + Default
+                + Mul<J, Output = J>
+                + Add<J, Output = J>,
             F: Copy + 'static + Float + AsPrimitive<J>,
             i32: AsPrimitive<J>,
             $column_type: AsPrimitive<J>,
@@ -311,7 +313,9 @@ macro_rules! default_floating_column_handler {
                 + AsPrimitive<$row_type>
                 + MulAdd<J, Output = J>
                 + Default
-                + MixedStorage<$row_type>,
+                + MixedStorage<$row_type>
+                + Mul<J, Output = J>
+                + Add<J, Output = J>,
             F: Copy + 'static + AsPrimitive<J> + Float,
             i32: AsPrimitive<J>,
             f32: AsPrimitive<J>,

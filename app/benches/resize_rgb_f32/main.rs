@@ -32,7 +32,7 @@ use fast_image_resize::images::Image;
 use fast_image_resize::FilterType::{Bilinear, Lanczos3};
 use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::{EncodableLayout, GenericImageView, ImageReader};
-use spic_scale::{resize_floating_point, ImageSize, ResamplingFunction};
+use pic_scale_safe::{resize_floating_point, ImageSize, ResamplingFunction};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let img = ImageReader::open("../assets/nasa-4928x3279.png")
@@ -52,7 +52,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             _ = resize_floating_point::<f32, f32, f32, 3>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
                 8,
                 ResamplingFunction::Lanczos3,
             )
@@ -75,10 +75,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::F32x3;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }
@@ -99,7 +98,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             _ = resize_floating_point::<f32, f32, f32, 3>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
                 8,
                 ResamplingFunction::Bilinear,
             )
@@ -113,10 +112,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::F32x3;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }

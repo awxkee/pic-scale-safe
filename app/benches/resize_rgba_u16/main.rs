@@ -31,8 +31,9 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use fast_image_resize::images::Image;
 use fast_image_resize::FilterType::{Bilinear, Lanczos3};
 use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resizer};
-use image::{EncodableLayout, GenericImageView, ImageReader};
-use spic_scale::{resize_fixed_point, ImageSize, ResamplingFunction};
+use image::imageops::FilterType;
+use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
+use pic_scale_safe::{resize_floating_point, ImageSize, ResamplingFunction};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let img = ImageReader::open("../assets/nasa-4928x3279.png")
@@ -41,6 +42,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         .unwrap();
     let dimensions = img.dimensions();
     let source_bytes = img.to_rgba8();
+
+    let rgba16 = img.to_rgba16();
+    let rgba16_dyn_image = DynamicImage::ImageRgba16(rgba16);
+
     let source_8bit = source_bytes.as_bytes();
     let src_bytes = source_8bit
         .iter()
@@ -49,14 +54,58 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Pic scale RGBA16: Lanczos 3", |b| {
         b.iter(|| {
-            _ = resize_fixed_point::<u16, i64, 4>(
+            _ = resize_floating_point::<u16, f32, f32, 4>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
-                8,
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
+                16,
                 ResamplingFunction::Lanczos3,
             )
             .unwrap();
+        })
+    });
+
+    c.bench_function("Pic scale RGBA10: Lanczos 3", |b| {
+        let image_10_bit = source_8bit
+            .iter()
+            .map(|&x| (x as u16) << 2)
+            .collect::<Vec<_>>();
+        b.iter(|| {
+            _ = resize_floating_point::<u16, f32, f32, 4>(
+                &image_10_bit,
+                ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
+                10,
+                ResamplingFunction::Lanczos3,
+            )
+            .unwrap();
+        })
+    });
+
+    c.bench_function("Pic scale RGBA10: Bilinear", |b| {
+        let image_10_bit = source_8bit
+            .iter()
+            .map(|&x| (x as u16) << 2)
+            .collect::<Vec<_>>();
+        b.iter(|| {
+            _ = resize_floating_point::<u16, f32, f32, 4>(
+                &image_10_bit,
+                ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
+                10,
+                ResamplingFunction::Bilinear,
+            )
+            .unwrap();
+        })
+    });
+
+    c.bench_function("Image RGBA: Lanczos 3", |b| {
+        b.iter(|| {
+            _ = rgba16_dyn_image.clone().resize_exact(
+                dimensions.0 / 4,
+                dimensions.1 / 4,
+                FilterType::Lanczos3,
+            );
         })
     });
 
@@ -73,10 +122,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::U16x4;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }
@@ -94,14 +142,24 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Pic scale RGBA16: Bilinear", |b| {
         b.iter(|| {
-            _ = resize_fixed_point::<u16, i64, 4>(
+            _ = resize_floating_point::<u16, f32, f32, 4>(
                 &src_bytes,
                 ImageSize::new(dimensions.0 as usize, dimensions.1 as usize),
-                ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2),
-                8,
+                ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4),
+                16,
                 ResamplingFunction::Bilinear,
             )
             .unwrap();
+        })
+    });
+
+    c.bench_function("Image RGBA: Bilinear", |b| {
+        b.iter(|| {
+            _ = rgba16_dyn_image.clone().resize_exact(
+                dimensions.0 / 4,
+                dimensions.1 / 4,
+                FilterType::Triangle,
+            );
         })
     });
 
@@ -111,10 +169,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             let pixel_type: PixelType = PixelType::U16x4;
             let src_image =
                 Image::from_slice_u8(dimensions.0, dimensions.1, &mut vc, pixel_type).unwrap();
-            let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+            let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
 
             let mut resizer = Resizer::new();
-            #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
             unsafe {
                 resizer.set_cpu_extensions(CpuExtensions::None);
             }
