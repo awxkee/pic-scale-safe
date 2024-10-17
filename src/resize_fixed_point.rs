@@ -35,7 +35,6 @@ use crate::sampler::ResamplingFunction;
 use crate::saturate_narrow::SaturateNarrow;
 use num_traits::AsPrimitive;
 use std::ops::{AddAssign, Mul};
-use std::time::Instant;
 
 pub fn resize_fixed_point<T, J, const CHANNELS: usize>(
     src: &[T],
