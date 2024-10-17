@@ -36,6 +36,22 @@ use crate::{ImageSize, ResamplingFunction};
 use num_traits::{AsPrimitive, Float, MulAdd, Signed};
 use std::ops::{AddAssign, MulAssign, Neg};
 
+/// Resizing image using exact convolution
+///
+/// # Arguments
+///
+/// * `src`: Source slice
+/// * `source_size`: Source image size
+/// * `destination_size`: Destination image size
+/// * `bit_depth`: Image bit-depth
+/// * `resampling_function`: sampler, see [ResamplingFunction] for more info
+///
+/// # Generics
+///
+/// * `T`- data type
+/// * `J`- accumulator type
+/// * `F` - floating kernel type, only `f32` and `f64` possible
+///
 pub fn resize_floating_point<T, J, F, const CHANNELS: usize>(
     src: &[T],
     source_size: ImageSize,

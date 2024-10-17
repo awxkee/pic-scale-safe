@@ -317,7 +317,7 @@ pub(crate) fn column_handler_fixed_point<
 /// # Generics
 /// `T` - template buffer type
 /// `J` - accumulator type
-pub(crate) fn column_handler_fixed_point_max_8<
+pub(crate) fn column_handler_fixed_point_u16<
     T: Copy + 'static + AsPrimitive<J> + Default,
     J: Copy + 'static + AsPrimitive<T> + Mul<Output = J> + AddAssign + SaturateNarrow<T> + Default,
     const COMPONENTS: usize,
@@ -336,6 +336,14 @@ pub(crate) fn column_handler_fixed_point_max_8<
     let mut cx = 0usize;
 
     let total_width = COMPONENTS * dst_width;
+
+    while cx + 32 < total_width {
+        convolve_column_handler_fixed_point_direct_buffer_four::<T, J, 8>(
+            src, src_stride, dst, weight, bounds, bit_depth, cx,
+        );
+
+        cx += 32;
+    }
 
     while cx + 16 < total_width {
         convolve_column_handler_fixed_point_direct_buffer_double::<T, J, 8>(

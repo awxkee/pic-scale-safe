@@ -97,13 +97,13 @@ pub(crate) fn convolve_column_handler_floating_point_4<
         bit_depth
     );
     fast_mixed_store_color_group!(
-        sums1,
+        sums2,
         &mut v_dst[CHANNELS * 2..CHANNELS * 3],
         CHANNELS,
         bit_depth
     );
     fast_mixed_store_color_group!(
-        sums1,
+        sums3,
         &mut v_dst[CHANNELS * 3..CHANNELS * 4],
         CHANNELS,
         bit_depth

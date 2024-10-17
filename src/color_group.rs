@@ -28,6 +28,7 @@
  */
 #![allow(dead_code)]
 use crate::mixed_storage::MixedStorage;
+use crate::mlaf::mlaf;
 use crate::saturate_narrow::SaturateNarrow;
 use num_traits::{AsPrimitive, FromPrimitive, MulAdd, Num};
 use std::ops::{Add, AddAssign, Mul, Shr, ShrAssign, Sub, SubAssign};
@@ -571,62 +572,24 @@ where
     type Output = Self;
 
     #[inline(always)]
-    #[cfg(not(any(
-        target_feature = "fma",
-        all(target_feature = "neon", target_arch = "aarch64")
-    )))]
     fn mul_add(self, a: ColorGroup<COMPS, J>, b: J) -> Self::Output {
         if COMPS == 1 {
-            ColorGroup::from_components(a.r * b + self.r, self.g, self.b, self.a)
+            ColorGroup::from_components(mlaf(self.r, a.r, b), self.g, self.b, self.a)
         } else if COMPS == 2 {
-            ColorGroup::from_components(a.r * b + self.r, a.g * b + self.g, self.b, self.a)
+            ColorGroup::from_components(mlaf(self.r, a.r, b), mlaf(self.g, a.g, b), self.b, self.a)
         } else if COMPS == 3 {
             ColorGroup::from_components(
-                a.r * b + self.r,
-                a.g * b + self.g,
-                a.b * b + self.b,
+                mlaf(self.r, a.r, b),
+                mlaf(self.g, a.g, b),
+                mlaf(self.b, a.b, b),
                 self.a,
             )
         } else if COMPS == 4 {
             ColorGroup::from_components(
-                a.r * b + self.r,
-                a.g * b + self.g,
-                a.b * b + self.b,
-                a.a * b + self.a,
-            )
-        } else {
-            panic!("Not implemented.");
-        }
-    }
-
-    #[inline(always)]
-    #[cfg(any(
-        target_feature = "fma",
-        all(target_feature = "neon", target_arch = "aarch64")
-    ))]
-    fn mul_add(self, a: ColorGroup<COMPS, J>, b: J) -> Self::Output {
-        if COMPS == 1 {
-            ColorGroup::from_components(self.r.mul_add(b, a.r), self.g, self.b, self.a)
-        } else if COMPS == 2 {
-            ColorGroup::from_components(
-                self.r.mul_add(b, a.r),
-                self.g.mul_add(b, a.g),
-                self.b,
-                self.a,
-            )
-        } else if COMPS == 3 {
-            ColorGroup::from_components(
-                self.r.mul_add(b, a.r),
-                self.g.mul_add(b, a.g),
-                self.b.mul_add(b, a.b),
-                self.a,
-            )
-        } else if COMPS == 4 {
-            ColorGroup::from_components(
-                self.r.mul_add(b, a.r),
-                self.g.mul_add(b, a.g),
-                self.b.mul_add(b, a.b),
-                self.a.mul_add(b, a.a),
+                mlaf(self.r, a.r, b),
+                mlaf(self.g, a.g, b),
+                mlaf(self.b, a.b, b),
+                mlaf(self.a, a.a, b),
             )
         } else {
             panic!("Not implemented.");

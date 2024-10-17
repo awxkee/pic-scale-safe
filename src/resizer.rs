@@ -33,7 +33,10 @@ use crate::{resize_fixed_point, resize_floating_point, ImageSize, ResamplingFunc
 /// To perform scaling on the image alpha must be unassociated first
 /// use [unpremultiply_rgba8] before do scaling, and [premultiply_rgba8]
 /// after.
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+///
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -49,6 +52,9 @@ use crate::{resize_fixed_point, resize_floating_point, ImageSize, ResamplingFunc
 /// # Limitations
 ///
 /// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
+///
+/// This is using integral approximations, if more precise results are required use direct call
+/// to [resize_floating_point::<u8, f32, f32, 4>]
 ///
 pub fn resize_rgba8(
     source: &[u8],
@@ -67,7 +73,9 @@ pub fn resize_rgba8(
 
 /// Performs resizing on RGB 8 bit-depth image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -83,6 +91,9 @@ pub fn resize_rgba8(
 /// # Limitations
 ///
 /// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
+///
+/// This is using integral approximations, if more precise results are required use direct call
+/// to [resize_floating_point::<u8, f32, f32, 3>]
 ///
 pub fn resize_rgb8(
     source: &[u8],
@@ -101,7 +112,9 @@ pub fn resize_rgb8(
 
 /// Performs resizing on planar 8 bit-depth image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -117,6 +130,9 @@ pub fn resize_rgb8(
 /// # Limitations
 ///
 /// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
+///
+/// This is using integral approximations, if more precise results are required use direct call
+/// to [resize_floating_point::<u8, f32, f32, 1>]
 ///
 pub fn resize_plane8(
     source: &[u8],
@@ -135,7 +151,9 @@ pub fn resize_plane8(
 
 /// Performs resizing on planar image with alpha 8 bit-depth image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -151,6 +169,9 @@ pub fn resize_plane8(
 /// # Limitations
 ///
 /// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
+///
+/// This is using integral approximations, if more precise results are required use direct call
+/// to [resize_floating_point::<u8, f32, f32, 2>]
 ///
 pub fn resize_plane8_with_alpha(
     source: &[u8],
@@ -172,7 +193,10 @@ pub fn resize_plane8_with_alpha(
 /// To perform scaling on the image alpha must be unassociated first
 /// use [unpremultiply_rgba16] before do scaling, and [premultiply_rgba16]
 /// after.
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+///
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -211,7 +235,9 @@ pub fn resize_rgba16(
 
 /// Performs resizing on RGB 8-16 bit-depth image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -250,7 +276,9 @@ pub fn resize_rgb16(
 
 /// Performs resizing on planar 8-16 bit-depth image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -289,11 +317,13 @@ pub fn resize_plane16(
 
 /// Performs resizing on RGBA f32 image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
-///
 /// To perform scaling on the image alpha must be unassociated first
 /// use [unpremultiply_rgba_f32] before do scaling, and [premultiply_rgba_f32]
 /// after.
+///
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear_f32_to_gamma_image_f32] and [image_f32_to_linear_f32] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -327,7 +357,9 @@ pub fn resize_rgba_f32(
 
 /// Performs resizing on RGB f32 image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear_f32_to_gamma_image_f32] and [image_f32_to_linear_f32] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///
@@ -361,7 +393,9 @@ pub fn resize_rgb_f32(
 
 /// Performs resizing on RGB f32 image
 ///
-/// Any content preferred to be in linear colorspace or perceptual before resizing.
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear_f32_to_gamma_image_f32] and [image_f32_to_linear_f32] if required,
+/// otherwise results will degrade.
 ///
 /// # Arguments
 ///

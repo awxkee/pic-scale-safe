@@ -36,6 +36,29 @@ use crate::saturate_narrow::SaturateNarrow;
 use num_traits::AsPrimitive;
 use std::ops::{AddAssign, Mul};
 
+/// Resizing using integral approximations
+///
+/// Implemented only for [u8, i32], [u8, i64], [u16, i32], [u16, i64].
+/// For `u16` it slower using approximation for 16 bit-depth image rather than `f32` accumulator
+/// without SIMD. This is might be faster only for [u16, i32] for 10, 12 bit-depth
+///
+/// # Arguments
+///
+/// * `src`: Source slice
+/// * `source_size`: Source image size
+/// * `destination_size`: Destination image size
+/// * `bit_depth`: Image bit-depth
+/// * `resampling_function`: sampler, see [ResamplingFunction] for more info
+///
+/// # Generics
+///
+/// * `T`- data type
+/// * `J`- accumulator type
+///
+/// # Limitations
+///
+/// If called with HDR content it will be erased.
+///
 pub fn resize_fixed_point<T, J, const CHANNELS: usize>(
     src: &[T],
     source_size: ImageSize,

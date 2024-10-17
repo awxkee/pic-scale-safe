@@ -30,7 +30,7 @@ use crate::filter_weights::{FilterBounds, FilterWeights};
 use crate::fixed_point_horizontal::{
     convolve_row_handler_fixed_point, convolve_row_handler_fixed_point_4,
 };
-use crate::fixed_point_vertical::{column_handler_fixed_point, column_handler_fixed_point_max_8};
+use crate::fixed_point_vertical::column_handler_fixed_point;
 use crate::floating_point_horizontal::{
     convolve_row_handler_floating_point, convolve_row_handler_floating_point_4,
 };
@@ -214,7 +214,7 @@ where
         weight: &[i16],
         bit_depth: u32,
     ) {
-        column_handler_fixed_point_max_8::<u16, J, COMPONENTS>(
+        column_handler_fixed_point::<u16, J, COMPONENTS>(
             dst_width, bounds, src, dst, src_stride, weight, bit_depth,
         );
     }
