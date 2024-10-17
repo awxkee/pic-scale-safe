@@ -64,7 +64,7 @@ cargo bench --bench resize_rgba_u16 --manifest-path ./app/Cargo.toml
 | pic-scale(aarch64)        |  28.041  |  18.89   |
 | fir(aarch64)              |  149.87  |  50.08   |
 | image(x86)                |  196.28  |  194.75  |
-| pic-scale(x86)            |  67.01   |  57.99   |
+| pic-scale(x86)            |  59.89   |  57.99   |
 | pic-scale(x86-cpu-native) |  44.07   |  57.99   |
 | fir(x86)                  |  52.73   |  28.35   |
 

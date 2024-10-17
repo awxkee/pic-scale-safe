@@ -214,6 +214,10 @@ pub fn resize_plane8_with_alpha(
 ///
 /// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
 ///
+/// This is using integral approximations for images 10, 12 bit depth,
+/// if more precise results are required use direct call
+/// to [resize_floating_point::<u16, f32, f32, 4>]
+///
 pub fn resize_rgba16(
     source: &[u16],
     source_size: ImageSize,
@@ -224,13 +228,23 @@ pub fn resize_rgba16(
     if bit_depth > 16 {
         return Err("Bit depth cannot be greater than 16".parse().unwrap());
     }
-    resize_floating_point::<u16, f32, f32, 4>(
-        source,
-        source_size,
-        destination_size,
-        bit_depth,
-        resampling_function,
-    )
+    if bit_depth == 10 || bit_depth == 12 {
+        resize_fixed_point::<u16, i32, 4>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    } else {
+        resize_floating_point::<u16, f32, f32, 4>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    }
 }
 
 /// Performs resizing on RGB 8-16 bit-depth image
@@ -255,6 +269,10 @@ pub fn resize_rgba16(
 ///
 /// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
 ///
+/// This is using integral approximations for images 10, 12 bit depth,
+/// if more precise results are required use direct call
+/// to [resize_floating_point::<u16, f32, f32, 3>]
+///
 pub fn resize_rgb16(
     source: &[u16],
     source_size: ImageSize,
@@ -265,13 +283,23 @@ pub fn resize_rgb16(
     if bit_depth > 16 {
         return Err("Bit depth cannot be greater than 16".parse().unwrap());
     }
-    resize_floating_point::<u16, f32, f32, 3>(
-        source,
-        source_size,
-        destination_size,
-        bit_depth,
-        resampling_function,
-    )
+    if bit_depth == 10 || bit_depth == 12 {
+        resize_fixed_point::<u16, i32, 3>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    } else {
+        resize_floating_point::<u16, f32, f32, 3>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    }
 }
 
 /// Performs resizing on planar 8-16 bit-depth image
@@ -296,6 +324,10 @@ pub fn resize_rgb16(
 ///
 /// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
 ///
+/// This is using integral approximations for images 10, 12 bit depth,
+/// if more precise results are required use direct call
+/// to [resize_floating_point::<u16, f32, f32, 3>]
+///
 pub fn resize_plane16(
     source: &[u16],
     source_size: ImageSize,
@@ -306,13 +338,23 @@ pub fn resize_plane16(
     if bit_depth > 16 {
         return Err("Bit depth cannot be greater than 16".parse().unwrap());
     }
-    resize_floating_point::<u16, f32, f32, 1>(
-        source,
-        source_size,
-        destination_size,
-        bit_depth,
-        resampling_function,
-    )
+    if bit_depth == 10 || bit_depth == 12 {
+        resize_fixed_point::<u16, i32, 1>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    } else {
+        resize_floating_point::<u16, f32, f32, 1>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    }
 }
 
 /// Performs resizing on RGBA f32 image

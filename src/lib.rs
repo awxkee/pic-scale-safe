@@ -45,6 +45,7 @@ mod handler_provider;
 mod image_size;
 mod math;
 mod mixed_storage;
+mod mlaf;
 mod resize_fixed_point;
 mod resize_floating_point;
 mod resize_nearest;
@@ -53,7 +54,6 @@ mod sampler;
 mod saturate_narrow;
 mod trc;
 mod trc_handler;
-mod mlaf;
 
 pub use alpha::*;
 pub use image_size::ImageSize;

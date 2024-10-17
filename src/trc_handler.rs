@@ -232,7 +232,10 @@ pub fn image_f32_to_linear_f32<const CHANNELS: usize>(in_place: &mut [f32], trc:
 /// * `in_place`: Where convert to
 /// * `trc` - Transfer function, see [TransferFunction] for more info
 ///
-pub fn linear_f32_to_gamma_image_f32<const CHANNELS: usize>(in_place: &mut [f32], trc: TransferFunction) {
+pub fn linear_f32_to_gamma_image_f32<const CHANNELS: usize>(
+    in_place: &mut [f32],
+    trc: TransferFunction,
+) {
     assert!(CHANNELS != 0 && CHANNELS <= 4, "Channels must be 1..=4");
     let iter;
     #[cfg(feature = "rayon")]

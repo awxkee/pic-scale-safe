@@ -27,7 +27,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use image::{GenericImageView, ImageReader};
-use pic_scale_safe::{image_to_linear, linear_to_gamma_image, resize_floating_point, resize_rgb8, ImageSize, ResamplingFunction, TransferFunction};
+use pic_scale_safe::{
+    image_to_linear, linear_to_gamma_image, resize_floating_point, resize_rgb8, ImageSize,
+    ResamplingFunction, TransferFunction,
+};
 use std::time::Instant;
 
 fn main() {
@@ -47,7 +50,14 @@ fn main() {
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
 
-    let mut resized = resize_floating_point::<u8, f32, f32, 3>(&working_store, src_size, dst_size, 8,  ResamplingFunction::Lanczos3).unwrap();
+    let mut resized = resize_floating_point::<u8, f32, f32, 3>(
+        &working_store,
+        src_size,
+        dst_size,
+        8,
+        ResamplingFunction::Lanczos3,
+    )
+    .unwrap();
 
     println!("Working time {:?}", start.elapsed());
 
