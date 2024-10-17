@@ -41,7 +41,7 @@ cargo bench --bench resize_rgba_u16 --manifest-path ./app/Cargo.toml
 | pic-scale(aarch64) |  147.46  |  96.86   |
 | fir(aarch64)       |  149.87  |  54.07   |
 | image(x86)         |  196.28  |  194.75  |
-| pic-scale(x86)     |  96.84   |  50.99   |
+| pic-scale(x86)     |  62.01   |  50.99   |
 | fir(aarch64)       |  52.73   |  28.35   |
 
 Example comparison time for downscale RGBA 4928x3279 `10 bit` image in 4 times.
@@ -56,7 +56,7 @@ cargo bench --bench resize_rgba_u16 --manifest-path ./app/Cargo.toml
 | pic-scale(aarch64) |  41.36   |  22.65   |
 | fir(aarch64)       |  149.87  |  54.07   |
 | image(x86)         |  196.28  |  194.75  |
-| pic-scale(x86)     |   -.84   |   -.99   |
+| pic-scale(x86)     |  53.67   |  36.50   |
 | fir(aarch64)       |  52.73   |  28.35   |
 
 Example comparison time for downscale RGB 4928x3279 `16 bit` image in 4 times.
