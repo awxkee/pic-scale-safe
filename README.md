@@ -38,25 +38,11 @@ cargo bench --bench resize_rgba_u16 --manifest-path ./app/Cargo.toml
 
 |                    | Lanczos3 | Bilinear |
 |--------------------|:--------:|:--------:|
-| pic-scale(aarch64) |  147.46  |  96.86   |
-| fir(aarch64)       |  149.87  |  54.07   |
+| image(aarch64)     |  123.27  |  52.91   |
+| pic-scale(aarch64) |  28.041  |  18.89   |
+| fir(aarch64)       |  149.87  |  50.08   |
 | image(x86)         |  196.28  |  194.75  |
 | pic-scale(x86)     |  62.01   |  50.99   |
-| fir(aarch64)       |  52.73   |  28.35   |
-
-Example comparison time for downscale RGBA 4928x3279 `10 bit` image in 4 times.
-Image and `fir` do not have any acceleration for 10, 12 bit images.
-
-```bash
-cargo bench --bench resize_rgba_u16 --manifest-path ./app/Cargo.toml
-```
-
-|                    | Lanczos3 | Bilinear |
-|--------------------|:--------:|:--------:|
-| pic-scale(aarch64) |  41.36   |  22.65   |
-| fir(aarch64)       |  149.87  |  54.07   |
-| image(x86)         |  196.28  |  194.75  |
-| pic-scale(x86)     |  53.67   |  36.50   |
 | fir(aarch64)       |  52.73   |  28.35   |
 
 Example comparison time for downscale RGB 4928x3279 `16 bit` image in 4 times.
@@ -67,12 +53,9 @@ cargo bench --bench resize_rgb_u16 --manifest-path ./app/Cargo.toml
 
 |                  | Lanczos3 | Bilinear |
 |------------------|:--------:|:--------:|
-| image(aarch)     |  137.92  |  61.06   |
-| pic-scale(aarch) |  110.07  |  70.77   |
+| image(aarch)     |  130.45  |  61.06   |
+| pic-scale(aarch) |  36.10   |  23.80   |
 | fir(aarch)       |  122.01  |  43.36   |
-| image(x86)       |  184.06  |  93.90   |
-| pic-scale(x86)   |  62.29   |  43.48   |
-| fir(x86)         |  53.39   |  32.34   |
 
 Example comparison time for downscale RGBA 4928x3279 `f32` image in 4 times.
 

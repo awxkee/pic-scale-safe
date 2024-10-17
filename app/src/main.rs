@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use image::{GenericImageView, ImageReader};
-use pic_scale_safe::{resize_fixed_point, resize_floating_point, ImageSize, ResamplingFunction};
+use pic_scale_safe::{resize_floating_point, ImageSize, ResamplingFunction};
 use std::time::Instant;
 
 fn main() {
@@ -45,7 +45,7 @@ fn main() {
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     let dst_size = ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2);
 
-    let resized = resize_fixed_point::<u16, i32, 4>(
+    let resized = resize_floating_point::<u16, f32, f32, 4>(
         &transient_bytes,
         src_size,
         dst_size,

@@ -104,8 +104,6 @@ where
         return Ok(store);
     }
 
-    let start = Instant::now();
-
     let mut working_slice_size = source_size;
     let mut working_slice_ref = src;
 
@@ -136,10 +134,6 @@ where
         working_slice_ref = &transient;
     }
 
-    // println!("Vertical time {:?}", start.elapsed());
-
-    let start = Instant::now();
-
     if working_slice_size.width != destination_size.width {
         let vertical_filters = generate_weights::<f32>(
             resampling_function,
@@ -163,8 +157,6 @@ where
 
         transient = transient2;
     }
-
-    // println!("Horizontal time {:?}", start.elapsed());
 
     assert_eq!(
         transient.len(),
