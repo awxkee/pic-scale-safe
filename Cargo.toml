@@ -4,6 +4,16 @@ workspace = { members = ["app"] }
 name = "pic-scale-safe"
 version = "0.1.0"
 edition = "2021"
+description = "High performance image scaling"
+readme = "README.md"
+keywords = ["scale", "resize", "image-resize"]
+license = "BSD-3-Clause OR Apache-2.0"
+authors = ["Radzivon Bartoshyk"]
+documentation = "https://github.com/awxkee/pic-scale-safe"
+categories = ["multimedia::images", "multimedia::video"]
+homepage = "https://github.com/awxkee/pic-scale-safe"
+repository = "https://github.com/awxkee/pic-scale-safe"
+exclude = ["*.jpg", "/assets", "*.png", "*.sh"]
 
 [dependencies]
 num-traits = "0.2.19"

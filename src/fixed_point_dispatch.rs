@@ -194,7 +194,7 @@ pub(crate) fn convolve_column_fixed_point<T, J, const CHANNELS: usize>(
             .for_each(|((dst, bounds), weights)| {
                 T::handle_column::<CHANNELS>(
                     destination_size.width,
-                    &bounds,
+                    bounds,
                     image_store,
                     dst,
                     src_stride,

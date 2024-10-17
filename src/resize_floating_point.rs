@@ -85,7 +85,9 @@ where
         + Jinc<F>
         + ConstSqrt2
         + Default
-        + AsPrimitive<i32>,
+        + AsPrimitive<i32>
+        + Send
+        + Sync,
     i32: AsPrimitive<J>,
     f32: AsPrimitive<J>,
     f32: AsPrimitive<F>,

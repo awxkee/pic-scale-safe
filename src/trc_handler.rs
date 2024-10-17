@@ -44,8 +44,8 @@ use rayon::prelude::ParallelSliceMut;
 pub fn image_to_linear<const CHANNELS: usize>(in_place: &mut [u8], trc: TransferFunction) {
     assert!(CHANNELS != 0 && CHANNELS <= 4, "Channels must be 1..=4");
     let mut lut_table = [0u8; 256];
-    for i in 0..256 {
-        lut_table[i] = (trc.linearize(i as f32 * (1. / 255.0)) * 255.).min(255.) as u8;
+    for (i, item) in lut_table.iter_mut().enumerate() {
+        *item = (trc.linearize(i as f32 * (1. / 255.0)) * 255.).min(255.) as u8;
     }
     let iter;
     #[cfg(feature = "rayon")]
@@ -59,7 +59,7 @@ pub fn image_to_linear<const CHANNELS: usize>(in_place: &mut [u8], trc: Transfer
     iter.for_each(|dst| {
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = lut_table[dst[0] as usize];
-        } else if CHANNELS == 3 || CHANNELS == 3 {
+        } else if CHANNELS == 3 || CHANNELS == 4 {
             dst[0] = lut_table[dst[0] as usize];
             dst[1] = lut_table[dst[1] as usize];
             dst[2] = lut_table[dst[2] as usize];
@@ -79,8 +79,8 @@ pub fn image_to_linear<const CHANNELS: usize>(in_place: &mut [u8], trc: Transfer
 pub fn linear_to_gamma_image<const CHANNELS: usize>(in_place: &mut [u8], trc: TransferFunction) {
     assert!(CHANNELS != 0 && CHANNELS <= 4, "Channels must be 1..=4");
     let mut lut_table = [0u8; 256];
-    for i in 0..256 {
-        lut_table[i] = (trc.gamma(i as f32 * (1. / 255.0)) * 255.).min(255.) as u8;
+    for (i, item) in lut_table.iter_mut().enumerate() {
+        *item = (trc.gamma(i as f32 * (1. / 255.0)) * 255.).min(255.) as u8;
     }
     let iter;
     #[cfg(feature = "rayon")]
@@ -94,7 +94,7 @@ pub fn linear_to_gamma_image<const CHANNELS: usize>(in_place: &mut [u8], trc: Tr
     iter.for_each(|dst| {
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = lut_table[dst[0] as usize];
-        } else if CHANNELS == 3 || CHANNELS == 3 {
+        } else if CHANNELS == 3 || CHANNELS == 4 {
             dst[0] = lut_table[dst[0] as usize];
             dst[1] = lut_table[dst[1] as usize];
             dst[2] = lut_table[dst[2] as usize];
@@ -117,14 +117,11 @@ pub fn image16_to_linear16<const CHANNELS: usize>(
     trc: TransferFunction,
 ) {
     assert!(CHANNELS != 0 && CHANNELS <= 4, "Channels must be 1..=4");
-    assert!(
-        bit_depth >= 1 && bit_depth <= 16,
-        "Bit depth must be 1..=16"
-    );
+    assert!((1..=16).contains(&bit_depth), "Bit depth must be 1..=16");
     let max_colors = (1 << bit_depth) - 1;
     let mut lut_table = vec![0u16; max_colors];
-    for i in 0..max_colors {
-        lut_table[i] = (trc.linearize(i as f32 * (1. / max_colors as f32)) * max_colors as f32)
+    for (i, item) in lut_table.iter_mut().enumerate().take(max_colors) {
+        *item = (trc.linearize(i as f32 * (1. / max_colors as f32)) * max_colors as f32)
             .min(max_colors as f32) as u16;
     }
     let iter;
@@ -139,7 +136,7 @@ pub fn image16_to_linear16<const CHANNELS: usize>(
     iter.for_each(|dst| {
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = lut_table[dst[0] as usize];
-        } else if CHANNELS == 3 || CHANNELS == 3 {
+        } else if CHANNELS == 3 || CHANNELS == 4 {
             dst[0] = lut_table[dst[0] as usize];
             dst[1] = lut_table[dst[1] as usize];
             dst[2] = lut_table[dst[2] as usize];
@@ -162,14 +159,11 @@ pub fn linear16_to_gamma_image16<const CHANNELS: usize>(
     trc: TransferFunction,
 ) {
     assert!(CHANNELS != 0 && CHANNELS <= 4, "Channels must be 1..=4");
-    assert!(
-        bit_depth >= 1 && bit_depth <= 16,
-        "Bit depth must be 1..=16"
-    );
+    assert!((1..=16).contains(&bit_depth), "Bit depth must be 1..=16");
     let max_colors = (1 << bit_depth) - 1;
     let mut lut_table = vec![0u16; max_colors];
-    for i in 0..max_colors {
-        lut_table[i] = (trc.gamma(i as f32 * (1. / max_colors as f32)) * max_colors as f32)
+    for (i, item) in lut_table.iter_mut().enumerate().take(max_colors) {
+        *item = (trc.gamma(i as f32 * (1. / max_colors as f32)) * max_colors as f32)
             .min(max_colors as f32) as u16;
     }
     let iter;
@@ -184,7 +178,7 @@ pub fn linear16_to_gamma_image16<const CHANNELS: usize>(
     iter.for_each(|dst| {
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = lut_table[dst[0] as usize];
-        } else if CHANNELS == 3 || CHANNELS == 3 {
+        } else if CHANNELS == 3 || CHANNELS == 4 {
             dst[0] = lut_table[dst[0] as usize];
             dst[1] = lut_table[dst[1] as usize];
             dst[2] = lut_table[dst[2] as usize];
@@ -215,7 +209,7 @@ pub fn image_f32_to_linear_f32<const CHANNELS: usize>(in_place: &mut [f32], trc:
     iter.for_each(|dst| {
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = trc.linearize(dst[0]);
-        } else if CHANNELS == 3 || CHANNELS == 3 {
+        } else if CHANNELS == 3 || CHANNELS == 4 {
             dst[0] = trc.linearize(dst[1]);
             dst[1] = trc.linearize(dst[2]);
             dst[2] = trc.linearize(dst[3]);
@@ -249,7 +243,7 @@ pub fn linear_f32_to_gamma_image_f32<const CHANNELS: usize>(
     iter.for_each(|dst| {
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = trc.gamma(dst[0]);
-        } else if CHANNELS == 3 || CHANNELS == 3 {
+        } else if CHANNELS == 3 || CHANNELS == 4 {
             dst[0] = trc.gamma(dst[1]);
             dst[1] = trc.gamma(dst[2]);
             dst[2] = trc.gamma(dst[3]);

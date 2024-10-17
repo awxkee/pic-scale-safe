@@ -28,8 +28,8 @@
  */
 use image::{GenericImageView, ImageReader};
 use pic_scale_safe::{
-    image_to_linear, linear_to_gamma_image, resize_floating_point, resize_rgb8, ImageSize,
-    ResamplingFunction, TransferFunction,
+    image_to_linear, linear_to_gamma_image, resize_floating_point, ImageSize, ResamplingFunction,
+    TransferFunction,
 };
 use std::time::Instant;
 

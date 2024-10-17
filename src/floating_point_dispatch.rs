@@ -45,9 +45,9 @@ pub(crate) fn convolve_row_floating_point<T, J, F, const CHANNELS: usize>(
     destination_size: ImageSize,
     bit_depth: u32,
 ) where
-    T: Copy + 'static + AsPrimitive<J> + Default + RowHandlerFloatingPoint<T, J, F>,
+    T: Copy + 'static + AsPrimitive<J> + Default + RowHandlerFloatingPoint<T, J, F> + Sync + Send,
     J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
-    F: Copy + 'static + AsPrimitive<J>,
+    F: Copy + 'static + AsPrimitive<J> + Send + Sync,
     i32: AsPrimitive<J>,
     f32: AsPrimitive<J>,
 {
@@ -157,9 +157,15 @@ pub(crate) fn convolve_column_floating_point<T, J, F, const CHANNELS: usize>(
     destination_size: ImageSize,
     bit_depth: u32,
 ) where
-    T: Copy + 'static + AsPrimitive<J> + Default + ColumnHandlerFloatingPoint<T, J, F>,
+    T: Copy
+        + 'static
+        + AsPrimitive<J>
+        + Default
+        + ColumnHandlerFloatingPoint<T, J, F>
+        + Send
+        + Sync,
     J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
-    F: Copy + 'static + AsPrimitive<J>,
+    F: Copy + 'static + AsPrimitive<J> + Send + Sync,
     i32: AsPrimitive<J>,
     f32: AsPrimitive<J>,
 {
@@ -192,7 +198,7 @@ pub(crate) fn convolve_column_floating_point<T, J, F, const CHANNELS: usize>(
             .for_each(|((dst, bounds), weights)| {
                 T::handle_column::<CHANNELS>(
                     destination_size.width,
-                    &bounds,
+                    bounds,
                     image_store,
                     dst,
                     src_stride,
