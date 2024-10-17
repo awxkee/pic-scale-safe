@@ -87,6 +87,45 @@ pub fn unpremultiply_rgba8(in_place: &mut [u8]) {
 /// # Arguments
 ///
 /// * `in_place`: Slice to where premultiply
+///
+pub fn premultiply_la8(in_place: &mut [u8]) {
+    for chunk in in_place.chunks_mut(2) {
+        let a = chunk[1] as u16;
+        let mut r = chunk[0] as u16;
+        r = (r * a) / 255;
+        chunk[0] = r as u8;
+    }
+}
+
+/// Un premultiply alpha in place
+///
+/// Note, for scaling alpha must be *unassociated*
+///
+/// # Arguments
+///
+/// * `in_place`: Slice to work on
+///
+///
+pub fn unpremultiply_la8(in_place: &mut [u8]) {
+    for chunk in in_place.chunks_mut(2) {
+        let a = chunk[1] as u16;
+        let mut r = chunk[0] as u16;
+        if a == 0 {
+            r = 0;
+        } else {
+            r = (r * 255) / a;
+        }
+        chunk[0] = r as u8;
+    }
+}
+
+/// Associate alpha in place
+///
+/// Note, for scaling alpha must be *unassociated*
+///
+/// # Arguments
+///
+/// * `in_place`: Slice to where premultiply
 /// * `bit_depth`: Bit-depth of the image
 ///
 pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {

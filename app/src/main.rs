@@ -27,10 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use image::{GenericImageView, ImageReader};
-use pic_scale_safe::{
-    image_to_linear, linear_to_gamma_image, resize_floating_point, ImageSize, ResamplingFunction,
-    TransferFunction,
-};
+use pic_scale_safe::{image_to_linear, linear_to_gamma_image, resize_plane8, ImageSize, ResamplingFunction, TransferFunction};
 use std::time::Instant;
 
 fn main() {
@@ -39,38 +36,37 @@ fn main() {
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgb8();
+    let transient = img.to_luma8();
 
     let mut working_store = transient.to_vec();
 
-    image_to_linear::<3>(&mut working_store, TransferFunction::Srgb);
+    image_to_linear::<1>(&mut working_store, TransferFunction::Srgb);
 
     let start = Instant::now();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
 
-    let mut resized = resize_floating_point::<u8, f32, f32, 3>(
+    let mut resized = resize_plane8(
         &working_store,
         src_size,
         dst_size,
-        8,
         ResamplingFunction::Lanczos3,
     )
     .unwrap();
 
     println!("Working time {:?}", start.elapsed());
 
-    linear_to_gamma_image::<3>(&mut resized, TransferFunction::Srgb);
+    linear_to_gamma_image::<1>(&mut resized, TransferFunction::Srgb);
 
     // let shifted = resized.iter().map(|&x| (x >> 4) as u8).collect::<Vec<_>>();
 
     image::save_buffer(
-        "converted.jpg",
+        "converted.png",
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgb8,
+        image::ColorType::L8,
     )
     .unwrap();
 }
