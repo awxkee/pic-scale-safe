@@ -6,14 +6,16 @@ Example comparison time for downscale RGBA 4928x3279 `8 bit` image in 4 times.
 cargo bench --bench resize_rgba --manifest-path ./app/Cargo.toml
 ```
 
-|                    | Lanczos3 | Bilinear |
-|--------------------|:--------:|:--------:|
-| image(aarch64)     |  121.19  |  48.89   |
-| pic-scale(aarch64) |  26.90   |  15.13   |
-| fir(aarch64)       |  25.93   |  11.30   |
-| image(x86)         |  192.52  |  88.63   |
-| pic-scale(x86)     |  49.79   |  35.98   |
-| fir(x86)           |  42.89   |  24.13   |
+|                           | Lanczos3 | Bilinear |
+|---------------------------|:--------:|:--------:|
+| image(aarch64)            |  121.19  |  48.89   |
+| pic-scale(aarch64)        |  26.90   |  15.13   |
+| fir(aarch64)              |  25.93   |  11.30   |
+| image(x86)                |  192.52  |  88.63   |
+| pic-scale(x86)            |  49.79   |  35.98   |
+| pic-scale(x86-cpu-native) |  27.21   |  20.48   |
+| fir(x86)                  |  42.89   |  24.13   |
+| fir(x86-cpu-native)       |  41.17   |  23.62   |
 
 Example comparison time for downscale RGB 4928x3279 `8 bit` image in 4 times.
 
