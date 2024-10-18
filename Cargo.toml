@@ -4,7 +4,7 @@ workspace = { members = ["app"] }
 name = "pic-scale-safe"
 version = "0.1.0"
 edition = "2021"
-description = "High performance image scaling"
+description = "Fast and safe performance image scaling"
 readme = "README.md"
 keywords = ["scale", "resize", "image-resize"]
 license = "BSD-3-Clause OR Apache-2.0"
