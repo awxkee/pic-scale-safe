@@ -132,6 +132,9 @@ pub fn resize_image(
                     // pass through
                 }
                 ColorSpace::Linear(trc) => {
+                    if working_vec.is_empty() {
+                        working_vec = source_data.to_vec();
+                    }
                     working_vec = source_data.to_vec();
                     image_to_linear::<2>(&mut working_vec, trc);
                     source_data = working_vec.as_slice();
