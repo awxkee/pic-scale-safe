@@ -17,7 +17,8 @@ let start = Instant::now();
 let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
 let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
 
-let resized = resize_rgb8(&transient, src_size, dst_size, ResamplingFunction::Lanczos3).unwrap();
+let resized = resize_rgb8(&transient, src_size, dst_size, 
+                          ResamplingFunction::Lanczos3).unwrap();
 ```
 
 Example comparison time for downscale RGBA 4928x3279 `8 bit` image in 4 times.
