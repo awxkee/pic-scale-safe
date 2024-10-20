@@ -121,7 +121,10 @@ pub fn resize_image(
             let mut working_vec = vec![];
 
             if associate_alpha {
-                premultiply_la8(&mut source_data);
+                if working_vec.is_empty() {
+                    working_vec = source_data.to_vec();
+                }
+                premultiply_la8(&mut working_vec);
             }
 
             match color_space {
