@@ -357,6 +357,61 @@ pub fn resize_plane16(
     }
 }
 
+/// Performs resizing on planar 8-16 bit-depth image with alpha
+///
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// otherwise results will degrade.
+///
+/// # Arguments
+///
+/// * `source`: Source image
+/// * `source_size`: Source image size
+/// * `destination_size`: Destination image size
+/// * `bit_depth`: Bit-depth of the image
+/// * `resampling_function`: Resampling filter, see [ResamplingFunction] for more info
+///
+/// # Returns
+///
+/// Resized image, this bounds always match destination size
+///
+/// # Limitations
+///
+/// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
+///
+/// This is using integral approximations for images 10, 12 bit depth,
+/// if more precise results are required use direct call
+/// to [resize_floating_point::<u16, f32, f32, 3>]
+///
+pub fn resize_plane16_with_alpha(
+    source: &[u16],
+    source_size: ImageSize,
+    destination_size: ImageSize,
+    bit_depth: u32,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u16>, String> {
+    if bit_depth > 16 {
+        return Err("Bit depth cannot be greater than 16".parse().unwrap());
+    }
+    if bit_depth == 10 || bit_depth == 12 {
+        resize_fixed_point::<u16, i32, 2>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    } else {
+        resize_floating_point::<u16, f32, f32, 2>(
+            source,
+            source_size,
+            destination_size,
+            bit_depth,
+            resampling_function,
+        )
+    }
+}
+
 /// Performs resizing on RGBA f32 image
 ///
 /// To perform scaling on the image alpha must be unassociated first

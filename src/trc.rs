@@ -253,7 +253,7 @@ pub fn iec619662_from_linear(linear: f32) -> f32 {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 /// Declares transfer function for transfer components into a linear colorspace and its inverse
 ///
 /// Checks [info](https://en.wikipedia.org/wiki/Transfer_functions_in_imaging)

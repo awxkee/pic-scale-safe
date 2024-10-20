@@ -119,8 +119,8 @@ pub fn image16_to_linear16<const CHANNELS: usize>(
     assert!(CHANNELS != 0 && CHANNELS <= 4, "Channels must be 1..=4");
     assert!((1..=16).contains(&bit_depth), "Bit depth must be 1..=16");
     let max_colors = (1 << bit_depth) - 1;
-    let mut lut_table = vec![0u16; max_colors];
-    for (i, item) in lut_table.iter_mut().enumerate().take(max_colors) {
+    let mut lut_table = vec![0u16; max_colors + 1];
+    for (i, item) in lut_table.iter_mut().enumerate() {
         *item = (trc.linearize(i as f32 * (1. / max_colors as f32)) * max_colors as f32)
             .min(max_colors as f32) as u16;
     }
@@ -161,8 +161,8 @@ pub fn linear16_to_gamma_image16<const CHANNELS: usize>(
     assert!(CHANNELS != 0 && CHANNELS <= 4, "Channels must be 1..=4");
     assert!((1..=16).contains(&bit_depth), "Bit depth must be 1..=16");
     let max_colors = (1 << bit_depth) - 1;
-    let mut lut_table = vec![0u16; max_colors];
-    for (i, item) in lut_table.iter_mut().enumerate().take(max_colors) {
+    let mut lut_table = vec![0u16; max_colors + 1];
+    for (i, item) in lut_table.iter_mut().enumerate() {
         *item = (trc.gamma(i as f32 * (1. / max_colors as f32)) * max_colors as f32)
             .min(max_colors as f32) as u16;
     }
@@ -210,9 +210,9 @@ pub fn image_f32_to_linear_f32<const CHANNELS: usize>(in_place: &mut [f32], trc:
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = trc.linearize(dst[0]);
         } else if CHANNELS == 3 || CHANNELS == 4 {
-            dst[0] = trc.linearize(dst[1]);
-            dst[1] = trc.linearize(dst[2]);
-            dst[2] = trc.linearize(dst[3]);
+            dst[0] = trc.linearize(dst[0]);
+            dst[1] = trc.linearize(dst[1]);
+            dst[2] = trc.linearize(dst[2]);
         }
     });
 }
@@ -244,9 +244,9 @@ pub fn linear_f32_to_gamma_image_f32<const CHANNELS: usize>(
         if CHANNELS == 1 || CHANNELS == 2 {
             dst[0] = trc.gamma(dst[0]);
         } else if CHANNELS == 3 || CHANNELS == 4 {
-            dst[0] = trc.gamma(dst[1]);
-            dst[1] = trc.gamma(dst[2]);
-            dst[2] = trc.gamma(dst[3]);
+            dst[0] = trc.gamma(dst[0]);
+            dst[1] = trc.gamma(dst[1]);
+            dst[2] = trc.gamma(dst[2]);
         }
     });
 }

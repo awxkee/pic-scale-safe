@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 image = "0.25.2"
 pic-scale-safe = {path = "../", features = []}
+fast_image_resize = { version = "5.0.0", features = [] }
 
 [dev-dependencies]
 criterion = "0.5.1"

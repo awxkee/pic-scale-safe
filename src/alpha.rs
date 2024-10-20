@@ -144,6 +144,49 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
     }
 }
 
+/// Associate alpha in place for up to 16 bit-depth image
+///
+/// Note, for scaling alpha must be *unassociated*
+///
+/// # Arguments
+///
+/// * `in_place`: Slice to where premultiply
+/// * `bit_depth`: Bit-depth of the image
+///
+pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
+    let max_colors = (1 << bit_depth) - 1;
+    for chunk in in_place.chunks_mut(2) {
+        let a = chunk[1] as u32;
+        let mut r = chunk[0] as u32;
+        r = (r * a) / max_colors;
+        chunk[0] = r as u16;
+    }
+}
+
+/// Un premultiply alpha in place for up to 16 bit-depth image
+///
+/// Note, for scaling alpha must be *unassociated*
+///
+/// # Arguments
+///
+/// * `in_place`: Slice to work on
+/// * `bit_depth`: Bit-depth of the image
+///
+///
+pub fn unpremultiply_la16(in_place: &mut [u16], bit_depth: u32) {
+    let max_colors = (1 << bit_depth) - 1;
+    for chunk in in_place.chunks_mut(2) {
+        let a = chunk[1] as u32;
+        let mut r = chunk[0] as u32;
+        if a == 0 {
+            r = 0;
+        } else {
+            r = (r * max_colors) / a;
+        }
+        chunk[0] = r as u16;
+    }
+}
+
 /// Un premultiply alpha in place
 ///
 /// Note, for scaling alpha must be *unassociated*
@@ -151,6 +194,7 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
 /// # Arguments
 ///
 /// * `in_place`: Slice to work on
+/// * `bit_depth`: Bit-depth of the image
 ///
 ///
 pub fn unpremultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
