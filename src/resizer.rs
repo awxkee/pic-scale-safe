@@ -31,7 +31,7 @@ use crate::{resize_fixed_point, resize_floating_point, ImageSize, ResamplingFunc
 /// Performs resizing on RGBA 8 bit-depth image
 ///
 /// To perform scaling on the image alpha must be associated first
-/// use [unpremultiply_rgba8] before do scaling, and [premultiply_rgba8]
+/// use [premultiply_rgba8] before do scaling, and [unpremultiply_rgba8]
 /// after.
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
@@ -191,7 +191,7 @@ pub fn resize_plane8_with_alpha(
 /// Performs resizing on RGBA 8-16 bit-depth image
 ///
 /// To perform scaling on the image alpha must be associated first
-/// use [unpremultiply_rgba16] before do scaling, and [premultiply_rgba16]
+/// use [premultiply_rgba16] before do scaling, and [unpremultiply_rgba16]
 /// after.
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
@@ -415,7 +415,7 @@ pub fn resize_plane16_with_alpha(
 /// Performs resizing on RGBA f32 image
 ///
 /// To perform scaling on the image alpha must be associated first
-/// use [unpremultiply_rgba_f32] before do scaling, and [premultiply_rgba_f32]
+/// use [premultiply_rgba_f32] before do scaling, and [unpremultiply_rgba_f32]
 /// after.
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
