@@ -68,7 +68,7 @@ pub fn resize_image(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
     color_space: ColorSpace,
-    is_alpha_associated: bool,
+    associate_alpha: bool,
 ) -> Result<DynamicImage, String> {
     let source_size = ImageSize::new(image.width() as usize, image.height() as usize);
     match image {
@@ -120,11 +120,8 @@ pub fn resize_image(
             let mut source_data: &[u8] = planar_image_with_alpha.as_raw();
             let mut working_vec = vec![];
 
-            if is_alpha_associated {
-                if working_vec.is_empty() {
-                    working_vec = source_data.to_vec();
-                }
-                unpremultiply_la8(&mut working_vec);
+            if associate_alpha {
+                premultiply_la8(&mut source_data);
             }
 
             match color_space {
@@ -155,8 +152,8 @@ pub fn resize_image(
                 }
             }
 
-            if is_alpha_associated {
-                premultiply_la8(&mut result);
+            if associate_alpha {
+                unpremultiply_la8(&mut result);
             }
 
             let gray_image = match GrayAlphaImage::from_raw(
@@ -222,11 +219,11 @@ pub fn resize_image(
             let mut source_data: &[u8] = rgba_image.as_raw();
             let mut working_vec = vec![];
 
-            if is_alpha_associated {
+            if associate_alpha {
                 if working_vec.is_empty() {
                     working_vec = source_data.to_vec();
                 }
-                unpremultiply_rgba8(&mut working_vec);
+                premultiply_rgba8(&mut working_vec);
             }
 
             match color_space {
@@ -259,8 +256,8 @@ pub fn resize_image(
                 }
             }
 
-            if is_alpha_associated {
-                premultiply_rgba8(&mut working_vec);
+            if associate_alpha {
+                unpremultiply_rgba8(&mut result);
             }
 
             let gray_image = match RgbaImage::from_raw(
@@ -325,11 +322,11 @@ pub fn resize_image(
             let mut source_data: &[u16] = planar16_with_alpha.as_raw();
             let mut working_vec = vec![];
 
-            if is_alpha_associated {
+            if associate_alpha {
                 if working_vec.is_empty() {
                     working_vec = source_data.to_vec();
                 }
-                unpremultiply_la16(&mut working_vec, 16);
+                premultiply_rgba16(&mut working_vec, 16);
             }
 
             match color_space {
@@ -363,8 +360,8 @@ pub fn resize_image(
                 }
             }
 
-            if is_alpha_associated {
-                premultiply_rgba16(&mut result, 16);
+            if associate_alpha {
+                unpremultiply_la16(&mut result, 16);
             }
 
             let gray_image = match ImageBuffer::<LumaA<u16>, Vec<u16>>::from_raw(
@@ -429,11 +426,11 @@ pub fn resize_image(
             let mut source_data: &[u16] = rgba16_image.as_raw();
             let mut working_vec = vec![];
 
-            if is_alpha_associated {
+            if associate_alpha {
                 if working_vec.is_empty() {
                     working_vec = source_data.to_vec();
                 }
-                unpremultiply_rgba16(&mut working_vec, 16);
+                premultiply_rgba16(&mut working_vec, 16);
             }
 
             match color_space {
@@ -466,8 +463,8 @@ pub fn resize_image(
                 }
             }
 
-            if is_alpha_associated {
-                premultiply_rgba16(&mut result, 16);
+            if associate_alpha {
+                unpremultiply_rgba16(&mut result, 16);
             }
 
             let gray_image = match ImageBuffer::<Rgba<u16>, Vec<u16>>::from_raw(
@@ -531,11 +528,11 @@ pub fn resize_image(
             let mut source_data: &[f32] = rgba_f32_image.as_raw();
             let mut working_vec = vec![];
 
-            if is_alpha_associated {
+            if associate_alpha {
                 if working_vec.is_empty() {
                     working_vec = source_data.to_vec();
                 }
-                unpremultiply_rgba_f32(&mut working_vec);
+                premultiply_rgba_f32(&mut working_vec);
             }
 
             match color_space {
@@ -568,8 +565,8 @@ pub fn resize_image(
                 }
             }
 
-            if is_alpha_associated {
-                premultiply_rgba_f32(&mut result);
+            if associate_alpha {
+                unpremultiply_rgba_f32(&mut working_vec);
             }
 
             let gray_image = match Rgba32FImage::from_raw(
