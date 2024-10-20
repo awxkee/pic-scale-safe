@@ -26,6 +26,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+use num_traits::{AsPrimitive, Float};
 
 #[derive(Debug, Clone)]
 pub struct FilterWeights<T> {
@@ -69,7 +70,12 @@ impl<T> FilterWeights<T> {
     }
 }
 
-impl FilterWeights<f32> {
+impl<F> FilterWeights<F>
+where
+    F: Float + 'static + AsPrimitive<i16>,
+    f64: AsPrimitive<F>,
+    i32: AsPrimitive<F>,
+{
     pub fn numerical_approximation_i16<const PRECISION: i32>(
         &self,
         alignment: usize,
@@ -79,7 +85,7 @@ impl FilterWeights<f32> {
         } else {
             self.kernel_size
         };
-        let precision_scale: f32 = (1 << PRECISION) as f32;
+        let precision_scale: F = (1 << PRECISION).as_();
 
         let mut output_kernel = vec![0i16; self.distinct_elements * align];
 
@@ -89,7 +95,7 @@ impl FilterWeights<f32> {
             .zip(output_kernel.chunks_exact_mut(align))
         {
             for (&weight, kernel) in chunk.iter().zip(kernel_chunk) {
-                *kernel = (weight * precision_scale).round() as i16;
+                *kernel = (weight * precision_scale).round().as_();
             }
         }
 

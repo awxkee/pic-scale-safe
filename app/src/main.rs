@@ -30,8 +30,14 @@ mod image_wrapper;
 
 use fast_image_resize::images::Image;
 use fast_image_resize::{CpuExtensions, FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer};
-use image::{DynamicImage, GenericImageView, ImageBuffer, ImageFormat, ImageReader, Rgb};
-use pic_scale_safe::{resize_rgb16, resize_rgba16, resize_rgba8, ImageSize, ResamplingFunction};
+use image::{
+    DynamicImage, EncodableLayout, GenericImageView, ImageBuffer, ImageFormat, ImageReader, Rgb,
+    RgbImage,
+};
+use pic_scale_safe::{
+    resize_floating_point, resize_rgb16, resize_rgb8, resize_rgba16, resize_rgba8, ImageSize,
+    ResamplingFunction,
+};
 use std::time::Instant;
 
 fn main() {
@@ -40,7 +46,7 @@ fn main() {
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgba8();
+    let transient = img.to_rgb8();
 
     let mut working_store = transient.to_vec();
 
@@ -49,7 +55,7 @@ fn main() {
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
 
-    let mut resized = resize_rgba8(
+    let mut resized = resize_rgb8(
         &working_store,
         src_size,
         dst_size,
@@ -69,20 +75,14 @@ fn main() {
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgba8,
+        image::ColorType::Rgb8,
     )
     .unwrap();
 
-    // let mut transmuted_form = vec![];
-    // for &pixel in transient.iter() {
-    //     let bytes = pixel.to_le_bytes();
-    //     transmuted_form.push(bytes[0]);
-    //     transmuted_form.push(bytes[1]);
-    // }
-    //
-    // let pixel_type: PixelType = PixelType::U16x3;
+    // let mut src_bytes = transient.as_bytes().to_vec();
+    // let pixel_type: PixelType = PixelType::U8x3;
     // let src_image =
-    //     Image::from_slice_u8(dimensions.0, dimensions.1, &mut transmuted_form, pixel_type).unwrap();
+    //     Image::from_slice_u8(dimensions.0, dimensions.1, &mut src_bytes, pixel_type).unwrap();
     // let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
     //
     // let mut resizer = Resizer::new();
@@ -106,16 +106,16 @@ fn main() {
     //
     // let img = u8_to_u16(dst_image.buffer());
     //
-    // let rgba_image = DynamicImage::ImageRgb16(ImageBuffer::<Rgb<u16>, Vec<u16>>::from_vec(dimensions.0 / 4, dimensions.1 / 4, Vec::from(img)).unwrap());
+    // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
     // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
-    // // image::save_buffer(
-    // //     "fast_image.png",
-    // //     dst_image.buffer(),
-    // //     dst_image.width(),
-    // //     dst_image.height(),
-    // //     image::ColorType::Rgb16,
-    // // )
-    // //     .unwrap();
+    // image::save_buffer(
+    //     "fast_image.png",
+    //     dst_image.buffer(),
+    //     dst_image.width(),
+    //     dst_image.height(),
+    //     image::ColorType::Rgb16,
+    // )
+    //     .unwrap();
 }
 
 fn u8_to_u16(u8_buffer: &[u8]) -> &[u16] {
