@@ -46,7 +46,7 @@ fn main() {
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgb8();
+    let transient = img.to_rgba8();
 
     let mut working_store = transient.to_vec();
 
@@ -55,7 +55,7 @@ fn main() {
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
 
-    let mut resized = resize_rgb8(
+    let mut resized = resize_rgba8(
         &working_store,
         src_size,
         dst_size,
@@ -75,7 +75,7 @@ fn main() {
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgb8,
+        image::ColorType::Rgba8,
     )
     .unwrap();
 

@@ -91,13 +91,27 @@ where
             src.len(),
         ));
     }
-    let (_, is_stride_overflowed) = source_size.width.overflowing_mul(CHANNELS);
+    let (src_stride, is_stride_overflowed) = source_size.width.overflowing_mul(CHANNELS);
     if is_stride_overflowed {
         return Err("Stride must never exceed usize::MAX".parse().unwrap());
     }
-    let (_, is_stride_overflowed) = destination_size.width.overflowing_mul(CHANNELS);
+    let (dst_stride, is_stride_overflowed) = destination_size.width.overflowing_mul(CHANNELS);
     if is_stride_overflowed {
         return Err("Stride must never exceed usize::MAX".parse().unwrap());
+    }
+    let (_, is_size_overflowing) = src_stride.overflowing_mul(source_size.height);
+    if is_size_overflowing {
+        return Err("Image size must never exceed usize::MAX".parse().unwrap());
+    }
+    let (_, is_size_overflowing) = dst_stride.overflowing_mul(destination_size.height);
+    if is_size_overflowing {
+        return Err("Image size must never exceed usize::MAX".parse().unwrap());
+    }
+    if source_size.width == 0 || source_size.height == 0 {
+        return Err("Image size must not be zero".to_string());
+    }
+    if destination_size.width == 0 || destination_size.height == 0 {
+        return Err("Image size must not be zero".to_string());
     }
 
     if source_size.width == destination_size.width && source_size.height == destination_size.height
