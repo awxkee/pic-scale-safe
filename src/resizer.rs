@@ -31,11 +31,11 @@ use crate::{resize_fixed_point, resize_floating_point, ImageSize, ResamplingFunc
 /// Performs resizing on RGBA 8 bit-depth image
 ///
 /// To perform scaling on the image alpha must be associated first
-/// use [premultiply_rgba8] before do scaling, and [unpremultiply_rgba8]
+/// use [crate::premultiply_rgba8] before do scaling, and [crate::unpremultiply_rgba8]
 /// after.
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// consider using [crate::linear_to_gamma_image] and [crate::image_to_linear] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -74,7 +74,7 @@ pub fn resize_rgba8(
 /// Performs resizing on RGB 8 bit-depth image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// consider using [crate::linear_to_gamma_image] and [crate::image_to_linear] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -113,7 +113,7 @@ pub fn resize_rgb8(
 /// Performs resizing on planar 8 bit-depth image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// consider using [crate::linear_to_gamma_image] and [crate::image_to_linear] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -152,7 +152,7 @@ pub fn resize_plane8(
 /// Performs resizing on planar image with alpha 8 bit-depth image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear_to_gamma_image] and [image_to_linear] if required,
+/// consider using [crate::linear_to_gamma_image] and [crate::image_to_linear] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -191,11 +191,11 @@ pub fn resize_plane8_with_alpha(
 /// Performs resizing on RGBA 8-16 bit-depth image
 ///
 /// To perform scaling on the image alpha must be associated first
-/// use [premultiply_rgba16] before do scaling, and [unpremultiply_rgba16]
+/// use [crate::premultiply_rgba16] before do scaling, and [crate::unpremultiply_rgba16]
 /// after.
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// consider using [crate::linear16_to_gamma_image16] and [crate::image16_to_linear16] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -250,7 +250,7 @@ pub fn resize_rgba16(
 /// Performs resizing on RGB 8-16 bit-depth image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// consider using [crate::linear16_to_gamma_image16] and [crate::image16_to_linear16] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -305,7 +305,7 @@ pub fn resize_rgb16(
 /// Performs resizing on planar 8-16 bit-depth image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// consider using [crate::linear16_to_gamma_image16] and [crate::image16_to_linear16] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -360,7 +360,7 @@ pub fn resize_plane16(
 /// Performs resizing on planar 8-16 bit-depth image with alpha
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear16_to_gamma_image16] and [image16_to_linear16] if required,
+/// consider using [crate::linear16_to_gamma_image16] and [crate::image16_to_linear16] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -415,7 +415,7 @@ pub fn resize_plane16_with_alpha(
 /// Performs resizing on RGBA f32 image
 ///
 /// To perform scaling on the image alpha must be associated first
-/// use [premultiply_rgba_f32] before do scaling, and [unpremultiply_rgba_f32]
+/// use [crate::premultiply_rgba_f32] before do scaling, and [crate::unpremultiply_rgba_f32]
 /// after.
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
@@ -455,7 +455,7 @@ pub fn resize_rgba_f32(
 /// Performs resizing on RGB f32 image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear_f32_to_gamma_image_f32] and [image_f32_to_linear_f32] if required,
+/// consider using [crate::linear_f32_to_gamma_image_f32] and [crate::image_f32_to_linear_f32] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments
@@ -491,7 +491,7 @@ pub fn resize_rgb_f32(
 /// Performs resizing on RGB f32 image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
-/// consider using [linear_f32_to_gamma_image_f32] and [image_f32_to_linear_f32] if required,
+/// consider using [crate::linear_f32_to_gamma_image_f32] and [crate::image_f32_to_linear_f32] if required,
 /// otherwise results will degrade.
 ///
 /// # Arguments

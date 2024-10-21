@@ -29,7 +29,7 @@
 
 /// Associate alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -52,7 +52,7 @@ pub fn premultiply_rgba8(in_place: &mut [u8]) {
 
 /// Un premultiply alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -82,7 +82,7 @@ pub fn unpremultiply_rgba8(in_place: &mut [u8]) {
 
 /// Associate alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -99,7 +99,7 @@ pub fn premultiply_la8(in_place: &mut [u8]) {
 
 /// Un premultiply alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -121,7 +121,7 @@ pub fn unpremultiply_la8(in_place: &mut [u8]) {
 
 /// Associate alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -146,7 +146,7 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
 
 /// Associate alpha in place for up to 16 bit-depth image
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -165,7 +165,7 @@ pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
 
 /// Un premultiply alpha in place for up to 16 bit-depth image
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -189,7 +189,7 @@ pub fn unpremultiply_la16(in_place: &mut [u16], bit_depth: u32) {
 
 /// Un premultiply alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -221,7 +221,7 @@ pub fn unpremultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
 
 /// Associate alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
@@ -244,7 +244,7 @@ pub fn premultiply_rgba_f32(in_place: &mut [f32]) {
 
 /// Un premultiply alpha in place
 ///
-/// Note, for scaling alpha must be *unassociated*
+/// Note, for scaling alpha must be *associated*
 ///
 /// # Arguments
 ///
