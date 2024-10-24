@@ -129,6 +129,7 @@ pub fn unpremultiply_la8(in_place: &mut [u8]) {
 /// * `bit_depth`: Bit-depth of the image
 ///
 pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
+    assert!(bit_depth > 0 && bit_depth <= 16);
     let max_colors = (1 << bit_depth) - 1;
     for chunk in in_place.chunks_mut(4) {
         let a = chunk[3] as u32;
@@ -154,6 +155,7 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
 /// * `bit_depth`: Bit-depth of the image
 ///
 pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
+    assert!(bit_depth > 0 && bit_depth <= 16);
     let max_colors = (1 << bit_depth) - 1;
     for chunk in in_place.chunks_mut(2) {
         let a = chunk[1] as u32;
@@ -174,6 +176,7 @@ pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
 ///
 ///
 pub fn unpremultiply_la16(in_place: &mut [u16], bit_depth: u32) {
+    assert!(bit_depth > 0 && bit_depth <= 16);
     let max_colors = (1 << bit_depth) - 1;
     for chunk in in_place.chunks_mut(2) {
         let a = chunk[1] as u32;
@@ -198,6 +201,7 @@ pub fn unpremultiply_la16(in_place: &mut [u16], bit_depth: u32) {
 ///
 ///
 pub fn unpremultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
+    assert!(bit_depth > 0 && bit_depth <= 16);
     let max_colors = (1 << bit_depth) - 1;
     for chunk in in_place.chunks_mut(4) {
         let a = chunk[3] as u32;

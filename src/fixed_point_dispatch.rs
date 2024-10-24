@@ -65,18 +65,14 @@ pub(crate) fn convolve_row_fixed_point<T, J, const CHANNELS: usize>(
     let mut overflowed = false;
 
     let (src_stride, k_overflowed) = image_size.width.overflowing_mul(CHANNELS);
-    if k_overflowed {
-        panic!("Stride must be always less than usize::MAX");
-    }
+    assert!(!k_overflowed, "Stride must be always less than usize::MAX");
     let (src_stride_4, k_overflowed) = src_stride.overflowing_mul(4);
     if k_overflowed {
         overflowed = true;
     }
 
     let (dst_stride, k_overflowed) = destination_size.width.overflowing_mul(CHANNELS);
-    if k_overflowed {
-        panic!("Stride must be always less than usize::MAX");
-    }
+    assert!(!k_overflowed, "Stride must be always less than usize::MAX");
     let (dst_stride_4, k_overflowed) = dst_stride.overflowing_mul(4);
     if k_overflowed {
         overflowed = true;
@@ -175,13 +171,9 @@ pub(crate) fn convolve_column_fixed_point<T, J, const CHANNELS: usize>(
     );
 
     let (src_stride, k_overflowed) = image_size.width.overflowing_mul(CHANNELS);
-    if k_overflowed {
-        panic!("Stride must be always less than usize::MAX");
-    }
+    assert!(!k_overflowed, "Stride must be always less than usize::MAX");
     let (dst_stride, k_overflowed) = destination_size.width.overflowing_mul(CHANNELS);
-    if k_overflowed {
-        panic!("Stride must be always less than usize::MAX");
-    }
+    assert!(!k_overflowed, "Stride must be always less than usize::MAX");
 
     let weights = filter_weights.numerical_approximation_i16::<PRECISION>(0);
 

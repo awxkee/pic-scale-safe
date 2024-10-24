@@ -46,36 +46,36 @@ fn main() {
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgba8();
+    let transient = img.to_rgb8();
 
     let mut working_store = transient.to_vec();
 
     let start = Instant::now();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
-    let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
+    let dst_size = ImageSize::new(dimensions.0 as usize * 4, dimensions.1 as usize * 4);
 
-    let mut resized = resize_rgba8(
+    let mut resized = resize_rgb8(
         &working_store,
         src_size,
         dst_size,
-        ResamplingFunction::Lanczos3,
+        ResamplingFunction::MitchellNetravalli,
     )
     .unwrap();
 
     println!("Working time {:?}", start.elapsed());
 
-    // let rgba_image = DynamicImage::ImageRgb16(ImageBuffer::<Rgb<u16>, Vec<u16>>::from_vec(dimensions.0 / 4, dimensions.1 / 4, resized).unwrap());
+    // let rgba_image = DynamicImage::ImageRgb16(ImageBuffer::<Rgb<u16>, Vec<u16>>::from_vec(dimensions.0 * 4, dimensions.1 / 4, resized).unwrap());
     // rgba_image.save_with_format("converted.png", ImageFormat::Png).unwrap();
 
     // let shifted = resized.iter().map(|&x| (x >> 8) as u8).collect::<Vec<_>>();
 
     image::save_buffer(
-        "converted.png",
+        "converted.jpg",
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgba8,
+        image::ColorType::Rgb8,
     )
     .unwrap();
 
@@ -83,11 +83,11 @@ fn main() {
     // let pixel_type: PixelType = PixelType::U8x3;
     // let src_image =
     //     Image::from_slice_u8(dimensions.0, dimensions.1, &mut src_bytes, pixel_type).unwrap();
-    // let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
+    // let mut dst_image = Image::new(dimensions.0 * 4, dimensions.1 * 4, pixel_type);
     //
     // let mut resizer = Resizer::new();
     // unsafe {
-    //     resizer.set_cpu_extensions(CpuExtensions::Neon);
+    //     resizer.set_cpu_extensions(CpuExtensions::None);
     // }
     //
     // let start = Instant::now();
@@ -97,23 +97,23 @@ fn main() {
     //         &src_image,
     //         &mut dst_image,
     //         &ResizeOptions::new()
-    //             .resize_alg(ResizeAlg::Convolution(FilterType::Lanczos3))
+    //             .resize_alg(ResizeAlg::Convolution(FilterType::Mitchell))
     //             .use_alpha(false),
     //     )
     //     .unwrap();
     //
     // println!("Working time {:?}", start.elapsed());
     //
-    // let img = u8_to_u16(dst_image.buffer());
-    //
-    // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
-    // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
+    // // let img = u8_to_u16(dst_image.buffer());
+    // //
+    // // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
+    // // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
     // image::save_buffer(
-    //     "fast_image.png",
+    //     "fast_image.jpg",
     //     dst_image.buffer(),
     //     dst_image.width(),
     //     dst_image.height(),
-    //     image::ColorType::Rgb16,
+    //     image::ColorType::Rgb8,
     // )
     //     .unwrap();
 }
