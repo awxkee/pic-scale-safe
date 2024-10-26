@@ -133,13 +133,13 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
     let recip_max_colors = 1. / max_colors as f32;
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[3] as u32;
-        chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors) as u32).max(max_colors as u32)
+        chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors) as u32).min(max_colors as u32)
             as u16;
-        chunk[1] = (((chunk[1] as u32 * a) as f32 * recip_max_colors) as u32).max(max_colors as u32)
+        chunk[1] = (((chunk[1] as u32 * a) as f32 * recip_max_colors) as u32).min(max_colors as u32)
             as u16;
-        chunk[2] = (((chunk[2] as u32 * a) as f32 * recip_max_colors) as u32).max(max_colors as u32)
+        chunk[2] = (((chunk[2] as u32 * a) as f32 * recip_max_colors) as u32).min(max_colors as u32)
             as u16;
-        chunk[3] = (((a * a) as f32 * recip_max_colors) as u32).max(max_colors as u32) as u16;
+        chunk[3] = (((a * a) as f32 * recip_max_colors) as u32).min(max_colors as u32) as u16;
     }
 }
 
@@ -160,9 +160,9 @@ pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
     let recip_max_colors = 1. / max_colors as f32;
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[1] as u32;
-        chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors) as u32).max(max_colors as u32)
+        chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors) as u32).min(max_colors as u32)
             as u16;
-        chunk[1] = (((a * a) as f32 * recip_max_colors) as u32).max(max_colors as u32) as u16;
+        chunk[1] = (((a * a) as f32 * recip_max_colors) as u32).min(max_colors as u32) as u16;
     }
 }
 
