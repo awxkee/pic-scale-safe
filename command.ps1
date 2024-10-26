@@ -1,2 +1,2 @@
-# $env:RUSTFLAGS = "-C target-cpu=native"
-cargo bench --bench resize_rgba_u16 --manifest-path ./app/Cargo.toml
+$env:RUSTFLAGS = "-C target-cpu=native"
+cargo bench --bench resize_rgba_f32 --manifest-path ./app/Cargo.toml
