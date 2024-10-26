@@ -98,8 +98,24 @@ pub(crate) fn convolve_row_handler_fixed_point<
                 + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight1
                 + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 2, J) * weight2
                 + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 3, J) * weight3;
+        } else if bounds_size == 6 {
+            let src_ptr0 = &src[px..(px + 6 * CHANNELS)];
+
+            let sliced_weights = &weights[0..6];
+            let weight0 = sliced_weights[0].as_();
+            let weight1 = sliced_weights[1].as_();
+            let weight2 = sliced_weights[2].as_();
+            let weight3 = sliced_weights[3].as_();
+            let weight4 = sliced_weights[4].as_();
+            let weight5 = sliced_weights[5].as_();
+            sums += fast_load_color_group!(src_ptr0, CHANNELS, J) * weight0
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight1
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 2, J) * weight2
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 3, J) * weight3
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 4, J) * weight4
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 5, J) * weight5;
         } else {
-            let src_ptr0 = &src[px..(px + bounds.size * CHANNELS)];
+            let src_ptr0 = &src[px..(px + bounds_size * CHANNELS)];
             for (&k_weight, src) in weights
                 .iter()
                 .zip(src_ptr0.chunks_exact(CHANNELS))
@@ -235,6 +251,43 @@ pub(crate) fn convolve_row_handler_fixed_point_4<
                 + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS, J) * weight1
                 + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS * 2, J) * weight2
                 + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS * 3, J) * weight3;
+        } else if bounds_size == 6 {
+            let src_ptr0 = &src[px..(px + 6 * CHANNELS)];
+            let src_ptr1 = &src[(px + src_stride)..(px + src_stride + 6 * CHANNELS)];
+            let src_ptr2 = &src[(px + src_stride * 2)..(px + src_stride * 2 + 6 * CHANNELS)];
+            let src_ptr3 = &src[(px + src_stride * 3)..(px + src_stride * 3 + 6 * CHANNELS)];
+
+            let sliced_weights = &weights[0..6];
+            let weight0 = sliced_weights[0].as_();
+            let weight1 = sliced_weights[1].as_();
+            let weight2 = sliced_weights[2].as_();
+            let weight3 = sliced_weights[3].as_();
+            let weight4 = sliced_weights[4].as_();
+            let weight5 = sliced_weights[5].as_();
+            sums0 += fast_load_color_group!(src_ptr0, CHANNELS, J) * weight0
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight1
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 2, J) * weight2
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 3, J) * weight3
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 4, J) * weight4
+                + fast_load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 5, J) * weight5;
+            sums1 += fast_load_color_group!(src_ptr1, CHANNELS, J) * weight0
+                + fast_load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS, J) * weight1
+                + fast_load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS * 2, J) * weight2
+                + fast_load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS * 3, J) * weight3
+                + fast_load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS * 4, J) * weight4
+                + fast_load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS * 5, J) * weight5;
+            sums2 += fast_load_color_group!(src_ptr2, CHANNELS, J) * weight0
+                + fast_load_color_group_with_offset!(src_ptr2, CHANNELS, CHANNELS, J) * weight1
+                + fast_load_color_group_with_offset!(src_ptr2, CHANNELS, CHANNELS * 2, J) * weight2
+                + fast_load_color_group_with_offset!(src_ptr2, CHANNELS, CHANNELS * 3, J) * weight3
+                + fast_load_color_group_with_offset!(src_ptr2, CHANNELS, CHANNELS * 4, J) * weight4
+                + fast_load_color_group_with_offset!(src_ptr2, CHANNELS, CHANNELS * 5, J) * weight5;
+            sums3 += fast_load_color_group!(src_ptr3, CHANNELS, J) * weight0
+                + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS, J) * weight1
+                + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS * 2, J) * weight2
+                + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS * 3, J) * weight3
+                + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS * 4, J) * weight4
+                + fast_load_color_group_with_offset!(src_ptr3, CHANNELS, CHANNELS * 5, J) * weight5;
         } else {
             let src_ptr0 = &src[px..(px + bounds_size * CHANNELS)];
             let src_ptr1 = &src[(px + src_stride)..(px + src_stride + bounds_size * CHANNELS)];

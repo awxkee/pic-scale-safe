@@ -34,10 +34,7 @@ use image::{
     imageops, DynamicImage, EncodableLayout, GenericImageView, ImageBuffer, ImageFormat,
     ImageReader, Rgb, RgbImage,
 };
-use pic_scale_safe::{
-    resize_fixed_point, resize_floating_point, resize_rgb16, resize_rgb8, resize_rgb_f32,
-    resize_rgba16, resize_rgba8, ImageSize, ResamplingFunction,
-};
+use pic_scale_safe::{premultiply_rgba8, resize_fixed_point, resize_floating_point, resize_rgb16, resize_rgb8, resize_rgb_f32, resize_rgba16, resize_rgba8, unpremultiply_rgba8, ImageSize, ResamplingFunction};
 use std::ops::{BitXor, Shr};
 use std::time::Instant;
 
@@ -47,7 +44,7 @@ fn main() {
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgb8();
+    let transient = img.to_rgba8();
 
     let mut working_store = transient.to_vec();
 
@@ -55,17 +52,21 @@ fn main() {
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     let dst_size = ImageSize::new(
-        (dimensions.0 as f32 + 1.) as usize,
-        (dimensions.1 as f32 + 1.) as usize,
+        dimensions.0 as usize / 2,
+        dimensions.1 as usize / 2,
     );
 
-    let mut resized = resize_rgb8(
+    premultiply_rgba8(&mut working_store);
+
+    let mut resized = resize_rgba8(
         &working_store,
         src_size,
         dst_size,
         ResamplingFunction::Lanczos3,
     )
     .unwrap();
+
+    // unpremultiply_rgba8(&mut resized);
 
     println!("Working time {:?}", start.elapsed());
 
@@ -82,7 +83,7 @@ fn main() {
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgb8,
+        image::ColorType::Rgba8,
     )
     .unwrap();
 

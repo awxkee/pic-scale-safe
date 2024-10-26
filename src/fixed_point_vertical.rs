@@ -68,7 +68,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer<
     }
 
     for (j, &k_weight) in filter.iter().take(bounds.size).skip(1).enumerate() {
-        let py = bounds.start + j;
+        let py = bounds.start + j + 1;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
         let src_ptr = &src[offset..(offset + BUFFER_SIZE)];
@@ -127,7 +127,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer_double<
     }
 
     for (j, &k_weight) in filter.iter().take(bounds.size).skip(1).enumerate() {
-        let py = bounds.start + j;
+        let py = bounds.start + j + 1;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
         let src_ptr0 = &src[offset..(offset + BUFFER_SIZE)];
@@ -207,7 +207,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer_four<
     }
 
     for (j, &k_weight) in filter.iter().take(bounds.size).skip(1).enumerate() {
-        let py = bounds.start + j;
+        let py = bounds.start + j + 1;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
         let src_ptr0 = &src[offset..(offset + BUFFER_SIZE)];
@@ -305,7 +305,7 @@ pub(crate) fn column_handler_fixed_point<
         cx += 8;
     }
 
-    while cx + 1 < total_width {
+    while cx < total_width {
         convolve_column_handler_fixed_point_direct_buffer::<T, J, 1>(
             src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
