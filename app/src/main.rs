@@ -34,7 +34,11 @@ use image::{
     imageops, DynamicImage, EncodableLayout, GenericImageView, ImageBuffer, ImageFormat,
     ImageReader, Rgb, RgbImage,
 };
-use pic_scale_safe::{premultiply_rgba8, resize_fixed_point, resize_floating_point, resize_rgb16, resize_rgb8, resize_rgb_f32, resize_rgba16, resize_rgba8, unpremultiply_rgba8, ImageSize, ResamplingFunction};
+use pic_scale_safe::{
+    premultiply_rgba8, resize_fixed_point, resize_floating_point, resize_rgb16, resize_rgb8,
+    resize_rgb_f32, resize_rgba16, resize_rgba8, unpremultiply_rgba8, ImageSize,
+    ResamplingFunction,
+};
 use std::ops::{BitXor, Shr};
 use std::time::Instant;
 
@@ -51,12 +55,13 @@ fn main() {
     let start = Instant::now();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
-    let dst_size = ImageSize::new(
-        dimensions.0 as usize / 2,
-        dimensions.1 as usize / 2,
-    );
+    let dst_size = ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2);
+
+    let start_mul = Instant::now();
 
     premultiply_rgba8(&mut working_store);
+
+    println!("Alpha mul time {:?}", start_mul.elapsed());
 
     let mut resized = resize_rgba8(
         &working_store,

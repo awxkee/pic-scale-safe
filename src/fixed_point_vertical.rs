@@ -68,6 +68,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer<
     }
 
     for (j, &k_weight) in filter.iter().take(bounds.size).skip(1).enumerate() {
+        // Adding 1 is necessary because skip do not incrementing value on values that skipped
         let py = bounds.start + j + 1;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
@@ -127,6 +128,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer_double<
     }
 
     for (j, &k_weight) in filter.iter().take(bounds.size).skip(1).enumerate() {
+        // Adding 1 is necessary because skip do not incrementing value on values that skipped
         let py = bounds.start + j + 1;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
@@ -207,6 +209,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer_four<
     }
 
     for (j, &k_weight) in filter.iter().take(bounds.size).skip(1).enumerate() {
+        // Adding 1 is necessary because skip do not incrementing value on values that skipped
         let py = bounds.start + j + 1;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
