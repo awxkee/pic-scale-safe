@@ -103,6 +103,8 @@ pub enum ResamplingFunction {
     Lagrange3,
     Lanczos6,
     Lanczos6Jinc,
+    /// This method replicates `INTER_AREA` behaviour from OpenCV
+    Area,
 }
 
 impl From<u32> for ResamplingFunction {
@@ -146,6 +148,7 @@ impl From<u32> for ResamplingFunction {
             35 => ResamplingFunction::Lagrange3,
             36 => ResamplingFunction::Lanczos6,
             37 => ResamplingFunction::Lanczos6Jinc,
+            38 => ResamplingFunction::Area,
             _ => ResamplingFunction::Bilinear,
         }
     }
@@ -176,6 +179,7 @@ pub struct ResamplingFilter<T> {
     pub window: Option<ResamplingWindow<T>>,
     pub min_kernel_size: f32,
     pub is_resizable_kernel: bool,
+    pub is_area_filter: bool,
 }
 
 impl<T> ResamplingFilter<T> {
@@ -185,6 +189,17 @@ impl<T> ResamplingFilter<T> {
             window: None,
             min_kernel_size,
             is_resizable_kernel: true,
+            is_area_filter: false,
+        }
+    }
+
+    fn new_area(kernel: fn(T) -> T, min_kernel_size: f32) -> ResamplingFilter<T> {
+        ResamplingFilter {
+            kernel,
+            window: None,
+            min_kernel_size,
+            is_resizable_kernel: true,
+            is_area_filter: true,
         }
     }
 
@@ -198,6 +213,7 @@ impl<T> ResamplingFilter<T> {
             window: Some(window),
             min_kernel_size,
             is_resizable_kernel: true,
+            is_area_filter: false,
         }
     }
 
@@ -207,6 +223,7 @@ impl<T> ResamplingFilter<T> {
             window: None,
             min_kernel_size,
             is_resizable_kernel: false,
+            is_area_filter: false,
         }
     }
 }
@@ -232,37 +249,38 @@ impl ResamplingFunction {
     {
         match self {
             ResamplingFunction::Bilinear => ResamplingFilter::new(bilinear, 2f32),
+            ResamplingFunction::Area => ResamplingFilter::new_area(box_weight, 2f32),
             ResamplingFunction::Nearest => {
                 // Just a stab for nearest
-                ResamplingFilter::new(bilinear, 1f32)
+                ResamplingFilter::new(bilinear, 2f32)
             }
-            ResamplingFunction::Cubic => ResamplingFilter::new(cubic_spline::<T>, 2f32),
+            ResamplingFunction::Cubic => ResamplingFilter::new(cubic_spline, 2f32),
             ResamplingFunction::MitchellNetravalli => {
-                ResamplingFilter::new(mitchell_netravalli::<T>, 2f32)
+                ResamplingFilter::new(mitchell_netravalli, 2f32)
             }
             ResamplingFunction::Lanczos3 => ResamplingFilter::new(lanczos3, 3f32),
-            ResamplingFunction::CatmullRom => ResamplingFilter::new(catmull_rom::<T>, 2f32),
-            ResamplingFunction::Hermite => ResamplingFilter::new(hermite_spline::<T>, 2f32),
-            ResamplingFunction::BSpline => ResamplingFilter::new(b_spline::<T>, 2f32),
+            ResamplingFunction::CatmullRom => ResamplingFilter::new(catmull_rom, 2f32),
+            ResamplingFunction::Hermite => ResamplingFilter::new(hermite_spline, 2f32),
+            ResamplingFunction::BSpline => ResamplingFilter::new(b_spline, 2f32),
             ResamplingFunction::Hann => ResamplingFilter::new(hann, 3f32),
-            ResamplingFunction::Bicubic => ResamplingFilter::new(bicubic_spline::<T>, 3f32),
+            ResamplingFunction::Bicubic => ResamplingFilter::new(bicubic_spline, 3f32),
             ResamplingFunction::Lanczos4 => ResamplingFilter::new(lanczos4, 4f32),
             ResamplingFunction::Lanczos2 => ResamplingFilter::new(lanczos2, 2f32),
-            ResamplingFunction::Hamming => ResamplingFilter::new(hamming, 1f32),
-            ResamplingFunction::Hanning => ResamplingFilter::new(hanning, 1f32),
-            ResamplingFunction::Welch => ResamplingFilter::new(welch, 1f32),
-            ResamplingFunction::Quadric => ResamplingFilter::new(quadric, 1.5f32),
+            ResamplingFunction::Hamming => ResamplingFilter::new(hamming, 2f32),
+            ResamplingFunction::Hanning => ResamplingFilter::new(hanning, 2f32),
+            ResamplingFunction::Welch => ResamplingFilter::new(welch, 2f32),
+            ResamplingFunction::Quadric => ResamplingFilter::new(quadric, 3f32),
             ResamplingFunction::Gaussian => ResamplingFilter::new(gaussian, 2f32),
             ResamplingFunction::Sphinx => ResamplingFilter::new(sphinx, 2f32),
-            ResamplingFunction::Bartlett => ResamplingFilter::new(bartlett, 1f32),
-            ResamplingFunction::Robidoux => ResamplingFilter::new(robidoux::<T>, 2f32),
-            ResamplingFunction::RobidouxSharp => ResamplingFilter::new(robidoux_sharp::<T>, 2f32),
+            ResamplingFunction::Bartlett => ResamplingFilter::new(bartlett, 2f32),
+            ResamplingFunction::Robidoux => ResamplingFilter::new(robidoux, 2f32),
+            ResamplingFunction::RobidouxSharp => ResamplingFilter::new(robidoux_sharp, 2f32),
             ResamplingFunction::Spline16 => ResamplingFilter::new_with_fixed_kernel(spline16, 2f32),
             ResamplingFunction::Spline36 => ResamplingFilter::new_with_fixed_kernel(spline36, 4f32),
             ResamplingFunction::Spline64 => ResamplingFilter::new_with_fixed_kernel(spline64, 6f32),
             ResamplingFunction::Kaiser => ResamplingFilter::new(kaiser, 2f32),
             ResamplingFunction::BartlettHann => ResamplingFilter::new(bartlett_hann, 2f32),
-            ResamplingFunction::Box => ResamplingFilter::new(box_weight, 0.5f32),
+            ResamplingFunction::Box => ResamplingFilter::new(box_weight, 2f32),
             ResamplingFunction::Bohman => ResamplingFilter::new(bohman, 2f32),
             ResamplingFunction::Lanczos2Jinc => ResamplingFilter::new(lanczos2_jinc, 2f32),
             ResamplingFunction::Lanczos3Jinc => ResamplingFilter::new(lanczos3_jinc, 3f32),

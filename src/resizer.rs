@@ -225,8 +225,8 @@ pub fn resize_rgba16(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
-    if bit_depth > 16 {
-        return Err("Bit depth cannot be greater than 16".parse().unwrap());
+    if bit_depth > 16 || bit_depth == 0 {
+        return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
     if bit_depth == 10 || bit_depth == 12 {
         resize_fixed_point::<u16, i32, 4>(
@@ -280,8 +280,8 @@ pub fn resize_rgb16(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
-    if bit_depth > 16 {
-        return Err("Bit depth cannot be greater than 16".parse().unwrap());
+    if bit_depth > 16 || bit_depth == 0 {
+        return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
     if bit_depth == 10 || bit_depth == 12 {
         resize_fixed_point::<u16, i32, 3>(
@@ -335,8 +335,8 @@ pub fn resize_plane16(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
-    if bit_depth > 16 {
-        return Err("Bit depth cannot be greater than 16".parse().unwrap());
+    if bit_depth > 16 || bit_depth == 0 {
+        return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
     if bit_depth == 10 || bit_depth == 12 {
         resize_fixed_point::<u16, i32, 1>(
@@ -390,8 +390,8 @@ pub fn resize_plane16_with_alpha(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
-    if bit_depth > 16 {
-        return Err("Bit depth cannot be greater than 16".parse().unwrap());
+    if bit_depth > 16 || bit_depth == 0 {
+        return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
     if bit_depth == 10 || bit_depth == 12 {
         resize_fixed_point::<u16, i32, 2>(

@@ -60,8 +60,12 @@ pub fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
 
     iter.enumerate().for_each(|(y, dst_row)| {
         for (x, dst_chunk) in dst_row.chunks_exact_mut(CHANNELS).enumerate() {
-            let src_x = (x as f32 * x_scale + 0.5f32).min(clip_width).max(0f32) as usize;
-            let src_y = (y as f32 * y_scale + 0.5f32).min(clip_height).max(0f32) as usize;
+            let src_x = ((x as f32 + 0.5f32) * x_scale - 0.5f32)
+                .min(clip_width)
+                .max(0f32) as usize;
+            let src_y = ((y as f32 + 0.5f32) * y_scale - 0.5f32)
+                .min(clip_height)
+                .max(0f32) as usize;
             let src_offset_y = src_y * src_stride;
             let src_px = src_x * CHANNELS;
             let offset = src_offset_y + src_px;
