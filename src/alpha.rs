@@ -158,7 +158,7 @@ pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
     assert!(bit_depth > 0 && bit_depth <= 16);
     let max_colors = (1 << bit_depth) - 1;
     let recip_max_colors = 1. / max_colors as f32;
-    for chunk in in_place.chunks_exact_mut(4) {
+    for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1] as u32;
         chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors) as u32).min(max_colors as u32)
             as u16;
