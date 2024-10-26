@@ -227,11 +227,13 @@ pub fn unpremultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
 /// * `in_place`: Slice to where premultiply
 ///
 pub fn premultiply_rgba_f32(in_place: &mut [f32]) {
+    // Almost all loops are not auto-vectorised without doing anything dirty.
+    // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[3];
-        chunk[0] = chunk[0] * a;
-        chunk[1] = chunk[1] * a;
-        chunk[2] = chunk[2] * a;
+        chunk[0] *= a;
+        chunk[1] *= a;
+        chunk[2] *= a;
         chunk[3] = a;
     }
 }
@@ -253,6 +255,7 @@ pub fn unpremultiply_rgba_f32(in_place: &mut [f32]) {
             chunk[0] *= a_recip;
             chunk[1] *= a_recip;
             chunk[2] *= a_recip;
+            chunk[3] = a;
         }
     }
 }
