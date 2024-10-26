@@ -31,13 +31,14 @@ mod image_wrapper;
 use fast_image_resize::images::Image;
 use fast_image_resize::{CpuExtensions, FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::{
-    DynamicImage, EncodableLayout, GenericImageView, ImageBuffer, ImageFormat, ImageReader, Rgb,
-    RgbImage,
+    imageops, DynamicImage, EncodableLayout, GenericImageView, ImageBuffer, ImageFormat,
+    ImageReader, Rgb, RgbImage,
 };
 use pic_scale_safe::{
-    resize_floating_point, resize_rgb16, resize_rgb8, resize_rgba16, resize_rgba8, ImageSize,
-    ResamplingFunction,
+    resize_fixed_point, resize_floating_point, resize_rgb16, resize_rgb8, resize_rgb_f32,
+    resize_rgba16, resize_rgba8, ImageSize, ResamplingFunction,
 };
+use std::ops::{BitXor, Shr};
 use std::time::Instant;
 
 fn main() {
@@ -53,13 +54,16 @@ fn main() {
     let start = Instant::now();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
-    let dst_size = ImageSize::new(dimensions.0 as usize * 4, dimensions.1 as usize * 4);
+    let dst_size = ImageSize::new(
+        (dimensions.0 as f32 + 1.) as usize,
+        (dimensions.1 as f32 + 1.) as usize,
+    );
 
     let mut resized = resize_rgb8(
         &working_store,
         src_size,
         dst_size,
-        ResamplingFunction::MitchellNetravalli,
+        ResamplingFunction::Lanczos3,
     )
     .unwrap();
 
@@ -68,10 +72,13 @@ fn main() {
     // let rgba_image = DynamicImage::ImageRgb16(ImageBuffer::<Rgb<u16>, Vec<u16>>::from_vec(dimensions.0 * 4, dimensions.1 / 4, resized).unwrap());
     // rgba_image.save_with_format("converted.png", ImageFormat::Png).unwrap();
 
-    // let shifted = resized.iter().map(|&x| (x >> 8) as u8).collect::<Vec<_>>();
+    // let shifted = resized
+    //     .iter()
+    //     .map(|&x| (x * 255.) as u8)
+    //     .collect::<Vec<_>>();
 
     image::save_buffer(
-        "converted.jpg",
+        "converted.png",
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
@@ -83,7 +90,7 @@ fn main() {
     // let pixel_type: PixelType = PixelType::U8x3;
     // let src_image =
     //     Image::from_slice_u8(dimensions.0, dimensions.1, &mut src_bytes, pixel_type).unwrap();
-    // let mut dst_image = Image::new(dimensions.0 * 4, dimensions.1 * 4, pixel_type);
+    // let mut dst_image = Image::new(dimensions.0 / 8, dimensions.1 / 8, pixel_type);
     //
     // let mut resizer = Resizer::new();
     // unsafe {
@@ -97,7 +104,7 @@ fn main() {
     //         &src_image,
     //         &mut dst_image,
     //         &ResizeOptions::new()
-    //             .resize_alg(ResizeAlg::Convolution(FilterType::Mitchell))
+    //             .resize_alg(ResizeAlg::Convolution(FilterType::Bilinear))
     //             .use_alpha(false),
     //     )
     //     .unwrap();
@@ -109,13 +116,13 @@ fn main() {
     // // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
     // // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
     // image::save_buffer(
-    //     "fast_image.jpg",
+    //     "fast_image.png",
     //     dst_image.buffer(),
     //     dst_image.width(),
     //     dst_image.height(),
     //     image::ColorType::Rgb8,
     // )
-    //     .unwrap();
+    // .unwrap();
 }
 
 fn u8_to_u16(u8_buffer: &[u8]) -> &[u16] {

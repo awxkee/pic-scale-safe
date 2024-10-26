@@ -34,6 +34,7 @@ use crate::mixed_storage::MixedStorage;
 use crate::resize_nearest::resize_nearest;
 use crate::{ImageSize, ResamplingFunction};
 use num_traits::{AsPrimitive, Float, MulAdd, Signed};
+use std::fmt::Debug;
 use std::ops::{AddAssign, MulAssign, Neg};
 
 /// Resizing image using exact convolution
@@ -82,13 +83,17 @@ where
         + AddAssign<F>
         + AsPrimitive<f64>
         + AsPrimitive<usize>
+        + AsPrimitive<i32>
+        + AsPrimitive<i64>
         + Jinc<F>
         + ConstSqrt2
         + Default
         + AsPrimitive<i32>
         + Send
-        + Sync,
-    i32: AsPrimitive<J>,
+        + Sync
+        + Debug,
+    i32: AsPrimitive<J> + AsPrimitive<F>,
+    i64: AsPrimitive<F>,
     f32: AsPrimitive<J>,
     f32: AsPrimitive<F>,
     f64: AsPrimitive<F>,

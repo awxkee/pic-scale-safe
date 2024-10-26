@@ -90,6 +90,7 @@ where
         + Mul<Output = J>
         + AddAssign
         + SaturateNarrow<u8>
+        + Add<J, Output = J>
         + Default,
     i32: AsPrimitive<J>,
     u8: AsPrimitive<J>,
@@ -131,6 +132,7 @@ where
         + Mul<Output = J>
         + AddAssign
         + SaturateNarrow<u16>
+        + Add<J, Output = J>
         + Default,
     i32: AsPrimitive<J>,
     u16: AsPrimitive<J>,
