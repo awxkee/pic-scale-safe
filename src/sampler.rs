@@ -269,7 +269,7 @@ impl ResamplingFunction {
             ResamplingFunction::Hamming => ResamplingFilter::new(hamming, 2f32),
             ResamplingFunction::Hanning => ResamplingFilter::new(hanning, 2f32),
             ResamplingFunction::Welch => ResamplingFilter::new(welch, 2f32),
-            ResamplingFunction::Quadric => ResamplingFilter::new(quadric, 2f32),
+            ResamplingFunction::Quadric => ResamplingFilter::new(quadric, 3f32),
             ResamplingFunction::Gaussian => ResamplingFilter::new(gaussian, 2f32),
             ResamplingFunction::Sphinx => ResamplingFilter::new(sphinx, 2f32),
             ResamplingFunction::Bartlett => ResamplingFilter::new(bartlett, 2f32),
