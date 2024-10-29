@@ -52,10 +52,8 @@ fn main() {
 
     let mut working_store = transient.to_vec();
 
-    let start = Instant::now();
-
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
-    let dst_size = ImageSize::new(dimensions.0 as usize / 2, dimensions.1 as usize / 2);
+    let dst_size = ImageSize::new(dimensions.0 as usize + 1, dimensions.1 as usize + 1);
 
     let start_mul = Instant::now();
 
@@ -63,11 +61,13 @@ fn main() {
 
     println!("Alpha mul time {:?}", start_mul.elapsed());
 
+    let start = Instant::now();
+
     let mut resized = resize_rgba8(
         &working_store,
         src_size,
         dst_size,
-        ResamplingFunction::Lanczos3,
+        ResamplingFunction::Bilinear,
     )
     .unwrap();
 
@@ -93,14 +93,14 @@ fn main() {
     .unwrap();
 
     // let mut src_bytes = transient.as_bytes().to_vec();
-    // let pixel_type: PixelType = PixelType::U8x3;
+    // let pixel_type: PixelType = PixelType::U8x4;
     // let src_image =
     //     Image::from_slice_u8(dimensions.0, dimensions.1, &mut src_bytes, pixel_type).unwrap();
-    // let mut dst_image = Image::new(dimensions.0 / 8, dimensions.1 / 8, pixel_type);
+    // let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
     //
     // let mut resizer = Resizer::new();
     // unsafe {
-    //     resizer.set_cpu_extensions(CpuExtensions::None);
+    //     resizer.set_cpu_extensions(CpuExtensions::Neon);
     // }
     //
     // let start = Instant::now();
@@ -126,7 +126,7 @@ fn main() {
     //     dst_image.buffer(),
     //     dst_image.width(),
     //     dst_image.height(),
-    //     image::ColorType::Rgb8,
+    //     image::ColorType::Rgba8,
     // )
     // .unwrap();
 }
