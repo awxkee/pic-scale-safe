@@ -62,86 +62,55 @@ pub(crate) fn convolve_row_floating_point<T, J, F, const CHANNELS: usize>(
         "Source image slice must match its dimensions"
     );
 
-    let mut overflowed = false;
-
     let (src_stride, k_overflowed) = image_size.width.overflowing_mul(CHANNELS);
     assert!(!k_overflowed, "Stride must be always less than usize::MAX");
-    let (src_stride_4, k_overflowed) = src_stride.overflowing_mul(4);
-    if k_overflowed {
-        overflowed = true;
-    }
+    let src_stride_4 = src_stride * 4;
 
     let (dst_stride, k_overflowed) = destination_size.width.overflowing_mul(CHANNELS);
     assert!(!k_overflowed, "Stride must be always less than usize::MAX");
-    let (dst_stride_4, k_overflowed) = dst_stride.overflowing_mul(4);
-    if k_overflowed {
-        overflowed = true;
+    let dst_stride_4 = dst_stride * 4;
+
+    #[cfg(not(feature = "rayon"))]
+    {
+        let image_store_4_iter = image_store.chunks_exact(src_stride_4);
+        let dst_store_4_iter = destination.chunks_exact_mut(dst_stride_4);
+
+        for (src, dst) in image_store_4_iter.zip(dst_store_4_iter) {
+            T::handle_row_4::<CHANNELS>(src, src_stride, dst, dst_stride, &weights, bit_depth);
+        }
+
+        let image_store_iter_rem = image_store.chunks_exact(src_stride_4).remainder();
+        let dst_store_iter_rem = destination.chunks_exact_mut(dst_stride_4).into_remainder();
+
+        let image_store_iter = image_store_iter_rem.chunks_exact(src_stride);
+        let dst_store_iter = dst_store_iter_rem.chunks_exact_mut(dst_stride);
+
+        for (src, dst) in image_store_iter.zip(dst_store_iter) {
+            T::handle_row::<CHANNELS>(src, dst, &weights, bit_depth);
+        }
     }
+    #[cfg(feature = "rayon")]
+    {
+        let image_store_4_iter = image_store.par_chunks_exact(src_stride_4);
+        let dst_store_4_iter = destination.par_chunks_exact_mut(dst_stride_4);
 
-    if !overflowed {
-        #[cfg(not(feature = "rayon"))]
-        {
-            let image_store_4_iter = image_store.chunks_exact(src_stride_4);
-            let dst_store_4_iter = destination.chunks_exact_mut(dst_stride_4);
-
-            for (src, dst) in image_store_4_iter.zip(dst_store_4_iter) {
+        image_store_4_iter
+            .zip(dst_store_4_iter)
+            .for_each(|(src, dst)| {
                 T::handle_row_4::<CHANNELS>(src, src_stride, dst, dst_stride, &weights, bit_depth);
-            }
-
-            let image_store_iter_rem = image_store.chunks_exact(src_stride_4).remainder();
-            let dst_store_iter_rem = destination.chunks_exact_mut(dst_stride_4).into_remainder();
-
-            let image_store_iter = image_store_iter_rem.chunks_exact(src_stride);
-            let dst_store_iter = dst_store_iter_rem.chunks_exact_mut(dst_stride);
-
-            for (src, dst) in image_store_iter.zip(dst_store_iter) {
-                T::handle_row::<CHANNELS>(src, dst, &weights, bit_depth);
-            }
-        }
-        #[cfg(feature = "rayon")]
-        {
-            let image_store_4_iter = image_store.par_chunks_exact(src_stride_4);
-            let dst_store_4_iter = destination.par_chunks_exact_mut(dst_stride_4);
-
-            image_store_4_iter
-                .zip(dst_store_4_iter)
-                .for_each(|(src, dst)| {
-                    T::handle_row_4::<CHANNELS>(
-                        src, src_stride, dst, dst_stride, &weights, bit_depth,
-                    );
-                });
-
-            let image_store_iter_rem = image_store.par_chunks_exact(src_stride_4).remainder();
-            let dst_store_iter_rem = destination
-                .par_chunks_exact_mut(dst_stride_4)
-                .into_remainder();
-
-            let image_store_iter = image_store_iter_rem.par_chunks_exact(src_stride);
-            let dst_store_iter = dst_store_iter_rem.par_chunks_exact_mut(dst_stride);
-
-            image_store_iter.zip(dst_store_iter).for_each(|(src, dst)| {
-                T::handle_row::<CHANNELS>(src, dst, &weights, bit_depth);
             });
-        }
-    } else {
-        #[cfg(feature = "rayon")]
-        {
-            let image_store_iter = image_store.par_chunks_exact(src_stride);
-            let dst_store_iter = destination.par_chunks_exact_mut(dst_stride);
 
-            image_store_iter.zip(dst_store_iter).for_each(|(src, dst)| {
-                T::handle_row::<CHANNELS>(src, dst, &weights, bit_depth);
-            });
-        }
-        #[cfg(not(feature = "rayon"))]
-        {
-            let image_store_iter = image_store.chunks_exact(src_stride);
-            let dst_store_iter = destination.chunks_exact_mut(dst_stride);
+        let image_store_iter_rem = image_store.par_chunks_exact(src_stride_4).remainder();
+        let dst_store_iter_rem = destination
+            .par_chunks_exact_mut(dst_stride_4)
+            .into_remainder();
 
-            for (src, dst) in image_store_iter.zip(dst_store_iter) {
-                T::handle_row::<CHANNELS>(src, dst, &weights, bit_depth);
-            }
-        }
+        let image_store_iter = image_store_iter_rem.par_chunks_exact(src_stride);
+        let dst_store_iter = dst_store_iter_rem.par_chunks_exact_mut(dst_stride);
+
+        image_store_iter.zip(dst_store_iter).for_each(|(src, dst)| {
+            T::handle_row::<CHANNELS>(src, dst, &weights, bit_depth);
+        });
     }
 }
 
@@ -188,15 +157,7 @@ pub(crate) fn convolve_column_floating_point<T, J, F, const CHANNELS: usize>(
             .zip(weights.bounds.par_iter())
             .zip(weights.weights.par_chunks_exact(weights.aligned_size))
             .for_each(|((dst, bounds), weights)| {
-                T::handle_column::<CHANNELS>(
-                    destination_size.width,
-                    bounds,
-                    image_store,
-                    dst,
-                    src_stride,
-                    weights,
-                    bit_depth,
-                );
+                T::handle_column(bounds, image_store, dst, src_stride, weights, bit_depth);
             });
     }
     #[cfg(not(feature = "rayon"))]
@@ -206,15 +167,7 @@ pub(crate) fn convolve_column_floating_point<T, J, F, const CHANNELS: usize>(
             .zip(weights.bounds)
             .zip(weights.weights.chunks_exact(weights.aligned_size))
         {
-            T::handle_column::<CHANNELS>(
-                destination_size.width,
-                &bounds,
-                image_store,
-                dst,
-                src_stride,
-                weights,
-                bit_depth,
-            );
+            T::handle_column(&bounds, image_store, dst, src_stride, weights, bit_depth);
         }
     }
 }

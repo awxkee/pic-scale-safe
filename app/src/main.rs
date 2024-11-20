@@ -28,46 +28,47 @@
  */
 mod image_wrapper;
 
-use fast_image_resize::images::Image;
-use fast_image_resize::{CpuExtensions, FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::{
-    imageops, DynamicImage, EncodableLayout, GenericImageView, ImageBuffer, ImageFormat,
-    ImageReader, Rgb, RgbImage,
+    imageops, EncodableLayout, GenericImageView,
+    ImageReader,
 };
 use pic_scale_safe::{
-    premultiply_rgba8, resize_fixed_point, resize_floating_point, resize_rgb16, resize_rgb8,
-    resize_rgb_f32, resize_rgba16, resize_rgba8, unpremultiply_rgba8, ImageSize,
+    resize_rgb8
+    , ImageSize,
     ResamplingFunction,
 };
 use std::ops::{BitXor, Shr};
 use std::time::Instant;
 
 fn main() {
-    let img = ImageReader::open("./assets/nasa-4928x3279.png")
+    let img = ImageReader::open("./assets/test.jpg")
         .unwrap()
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgba8();
+    let transient = img.to_rgb8();
 
     let mut working_store = transient.to_vec();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
-    let dst_size = ImageSize::new(dimensions.0 as usize + 1, dimensions.1 as usize + 1);
+    // let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
+    let dst_size = ImageSize::new(300 * 2, 225 * 2);
+    
+    img.resize_exact(dst_size.width as u32, dst_size.height as u32, imageops::FilterType::Lanczos3).save("img.png").unwrap();
 
-    let start_mul = Instant::now();
-
-    premultiply_rgba8(&mut working_store);
-
-    println!("Alpha mul time {:?}", start_mul.elapsed());
+    // let start_mul = Instant::now();
+    //
+    // // premultiply_rgba8(&mut working_store);
+    //
+    // println!("Alpha mul time {:?}", start_mul.elapsed());
 
     let start = Instant::now();
 
-    let mut resized = resize_rgba8(
+    let resized = resize_rgb8(
         &working_store,
         src_size,
         dst_size,
-        ResamplingFunction::Bilinear,
+        ResamplingFunction::Lanczos3,
     )
     .unwrap();
 
@@ -88,7 +89,7 @@ fn main() {
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgba8,
+        image::ColorType::Rgb8,
     )
     .unwrap();
 

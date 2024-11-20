@@ -74,7 +74,7 @@ const S03: f64 = 1.17718464042623683263e-06; /* 0x3EB3BFF8, 0x333F8498 */
 const S04: f64 = 5.04636257076217042715e-09; /* 0x3E35AC88, 0xC97DFF2C */
 const S05: f64 = 1.23542274426137913908e-11; /* 0x3DAB2ACF, 0xCFB97ED8 */
 
-pub fn j1(x: f64) -> f64 {
+pub(crate) fn j1(x: f64) -> f64 {
     let mut z: f64;
     let r: f64;
     let s: f64;
@@ -318,7 +318,7 @@ fn qone(x: f64) -> f64 {
 }
 
 #[inline]
-pub fn jinc_f64(x: f64) -> f64 {
+pub(crate) fn jinc_f64(x: f64) -> f64 {
     if x == 0f64 {
         return 0f64;
     }
@@ -326,14 +326,14 @@ pub fn jinc_f64(x: f64) -> f64 {
 }
 
 #[inline]
-pub fn jinc_f32(x: f32) -> f32 {
+pub(crate) fn jinc_f32(x: f32) -> f32 {
     if x == 0f32 {
         return 0f32;
     }
     (j1(x as f64) / x as f64) as f32
 }
 
-pub trait Jinc<T> {
+pub(crate) trait Jinc<T> {
     fn jinc() -> fn(T) -> T;
 }
 

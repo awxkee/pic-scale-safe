@@ -40,15 +40,14 @@ use crate::saturate_narrow::SaturateNarrow;
 use num_traits::{AsPrimitive, Float, MulAdd};
 use std::ops::{Add, AddAssign, Mul};
 
-pub trait ColumnHandlerFixedPoint<T, J>
+pub(crate) trait ColumnHandlerFixedPoint<T, J>
 where
     T: Copy + 'static + AsPrimitive<J> + Default,
     J: Copy + 'static + AsPrimitive<T> + Mul<Output = J> + AddAssign + SaturateNarrow<T> + Default,
     i32: AsPrimitive<J>,
     i16: AsPrimitive<J>,
 {
-    fn handle_column<const COMPONENTS: usize>(
-        dst_width: usize,
+    fn handle_column(
         bounds: &FilterBounds,
         src: &[T],
         dst: &mut [T],
@@ -58,7 +57,7 @@ where
     );
 }
 
-pub trait RowHandlerFixedPoint<T, J>
+pub(crate) trait RowHandlerFixedPoint<T, J>
 where
     T: Copy + 'static + AsPrimitive<J> + Default,
     J: Copy + 'static + AsPrimitive<T> + Mul<Output = J> + AddAssign + SaturateNarrow<T> + Default,
@@ -179,8 +178,7 @@ where
     i16: AsPrimitive<J>,
     u8: AsPrimitive<J>,
 {
-    fn handle_column<const COMPONENTS: usize>(
-        dst_width: usize,
+    fn handle_column(
         bounds: &FilterBounds,
         src: &[u8],
         dst: &mut [u8],
@@ -188,9 +186,7 @@ where
         weight: &[i16],
         bit_depth: u32,
     ) {
-        column_handler_fixed_point::<u8, J, COMPONENTS>(
-            dst_width, bounds, src, dst, src_stride, weight, bit_depth,
-        );
+        column_handler_fixed_point::<u8, J>(bounds, src, dst, src_stride, weight, bit_depth);
     }
 }
 
@@ -207,8 +203,7 @@ where
     i16: AsPrimitive<J>,
     u16: AsPrimitive<J>,
 {
-    fn handle_column<const COMPONENTS: usize>(
-        dst_width: usize,
+    fn handle_column(
         bounds: &FilterBounds,
         src: &[u16],
         dst: &mut [u16],
@@ -216,13 +211,11 @@ where
         weight: &[i16],
         bit_depth: u32,
     ) {
-        column_handler_fixed_point::<u16, J, COMPONENTS>(
-            dst_width, bounds, src, dst, src_stride, weight, bit_depth,
-        );
+        column_handler_fixed_point::<u16, J>(bounds, src, dst, src_stride, weight, bit_depth);
     }
 }
 
-pub trait ColumnHandlerFloatingPoint<T, J, F>
+pub(crate) trait ColumnHandlerFloatingPoint<T, J, F>
 where
     T: Copy + 'static + AsPrimitive<J> + Default,
     J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,
@@ -230,8 +223,7 @@ where
     i32: AsPrimitive<J>,
     f32: AsPrimitive<J>,
 {
-    fn handle_column<const COMPONENTS: usize>(
-        dst_width: usize,
+    fn handle_column(
         bounds: &FilterBounds,
         src: &[T],
         dst: &mut [T],
@@ -258,8 +250,7 @@ macro_rules! default_floating_column_handler {
             $column_type: AsPrimitive<J>,
             f32: AsPrimitive<J>,
         {
-            fn handle_column<const COMPONENTS: usize>(
-                dst_width: usize,
+            fn handle_column(
                 bounds: &FilterBounds,
                 src: &[$column_type],
                 dst: &mut [$column_type],
@@ -267,8 +258,8 @@ macro_rules! default_floating_column_handler {
                 weight: &[F],
                 bit_depth: u32,
             ) {
-                column_handler_floating_point::<$column_type, J, F, COMPONENTS>(
-                    dst_width, bounds, src, dst, src_stride, weight, bit_depth,
+                column_handler_floating_point::<$column_type, J, F>(
+                    bounds, src, dst, src_stride, weight, bit_depth,
                 )
             }
         }
@@ -281,7 +272,7 @@ default_floating_column_handler!(u32);
 default_floating_column_handler!(f32);
 default_floating_column_handler!(f64);
 
-pub trait RowHandlerFloatingPoint<T, J, F>
+pub(crate) trait RowHandlerFloatingPoint<T, J, F>
 where
     T: Copy + 'static + AsPrimitive<J> + Default,
     J: Copy + 'static + AsPrimitive<T> + MulAdd<J, Output = J> + Default + MixedStorage<T>,

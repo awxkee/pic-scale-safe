@@ -34,7 +34,7 @@ use num_traits::{AsPrimitive, Float};
 use std::ops::Div;
 
 #[inline(always)]
-pub fn lanczos_jinc<
+pub(crate) fn lanczos_jinc<
     V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI + AsPrimitive<f64> + Jinc<V>,
 >(
     x: V,
@@ -57,7 +57,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos3_jinc<
+pub(crate) fn lanczos3_jinc<
     V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI + AsPrimitive<f64> + Jinc<V>,
 >(
     x: V,
@@ -70,7 +70,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos2_jinc<
+pub(crate) fn lanczos2_jinc<
     V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI + AsPrimitive<f64> + Jinc<V>,
 >(
     x: V,
@@ -83,7 +83,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos4_jinc<
+pub(crate) fn lanczos4_jinc<
     V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI + AsPrimitive<f64> + Jinc<V>,
 >(
     x: V,
@@ -96,7 +96,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos6_jinc<
+pub(crate) fn lanczos6_jinc<
     V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI + AsPrimitive<f64> + Jinc<V>,
 >(
     x: V,
@@ -110,7 +110,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos_sinc<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(
+pub(crate) fn lanczos_sinc<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(
     x: V,
     a: V,
 ) -> V
@@ -126,7 +126,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos3<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
+pub(crate) fn lanczos3<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
 where
     f32: AsPrimitive<V>,
     f64: AsPrimitive<V>,
@@ -135,7 +135,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos4<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
+pub(crate) fn lanczos4<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
 where
     f32: AsPrimitive<V>,
 {
@@ -143,7 +143,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos6<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
+pub(crate) fn lanczos6<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
 where
     f32: AsPrimitive<V>,
 {
@@ -151,7 +151,7 @@ where
 }
 
 #[inline(always)]
-pub fn lanczos2<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
+pub(crate) fn lanczos2<V: Copy + PartialEq + Div<Output = V> + 'static + Float + ConstPI>(x: V) -> V
 where
     f32: AsPrimitive<V>,
 {

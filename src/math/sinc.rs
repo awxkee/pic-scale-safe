@@ -31,7 +31,7 @@ use num_traits::{AsPrimitive, Float};
 use std::ops::Div;
 
 #[inline]
-pub fn sinc<V: Copy + PartialEq + Div<Output = V> + 'static + Float>(x: V) -> V
+pub(crate) fn sinc<V: Copy + PartialEq + Div<Output = V> + 'static + Float>(x: V) -> V
 where
     f32: AsPrimitive<V>,
 {
