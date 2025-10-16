@@ -32,29 +32,25 @@ use image::{
     imageops, EncodableLayout, GenericImageView,
     ImageReader,
 };
-use pic_scale_safe::{
-    resize_rgb8
-    , ImageSize,
-    ResamplingFunction,
-};
+use pic_scale_safe::{resize_rgb8, resize_rgba8, ImageSize, ResamplingFunction};
 use std::ops::{BitXor, Shr};
 use std::time::Instant;
+use fast_image_resize::images::Image;
+use fast_image_resize::{CpuExtensions, FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer};
 
 fn main() {
-    let img = ImageReader::open("./assets/test.jpg")
+    let img = ImageReader::open("./assets/test_alpha.JPG")
         .unwrap()
         .decode()
         .unwrap();
     let dimensions = img.dimensions();
-    let transient = img.to_rgb8();
+    let transient = img.to_rgba8();
 
     let mut working_store = transient.to_vec();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     // let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
-    let dst_size = ImageSize::new(300 * 2, 225 * 2);
-    
-    img.resize_exact(dst_size.width as u32, dst_size.height as u32, imageops::FilterType::Lanczos3).save("img.png").unwrap();
+    let dst_size = ImageSize::new(src_size.width / 6, src_size.height /6);
 
     // let start_mul = Instant::now();
     //
@@ -64,7 +60,7 @@ fn main() {
 
     let start = Instant::now();
 
-    let resized = resize_rgb8(
+    let resized = resize_rgba8(
         &working_store,
         src_size,
         dst_size,
@@ -89,7 +85,7 @@ fn main() {
         &resized,
         dst_size.width as u32,
         dst_size.height as u32,
-        image::ColorType::Rgb8,
+        image::ColorType::Rgba8,
     )
     .unwrap();
 
@@ -97,7 +93,7 @@ fn main() {
     // let pixel_type: PixelType = PixelType::U8x4;
     // let src_image =
     //     Image::from_slice_u8(dimensions.0, dimensions.1, &mut src_bytes, pixel_type).unwrap();
-    // let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+    // let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
     //
     // let mut resizer = Resizer::new();
     // unsafe {
@@ -117,11 +113,11 @@ fn main() {
     //     .unwrap();
     //
     // println!("Working time {:?}", start.elapsed());
+    
+    // let img = u8_to_u16(dst_image.buffer());
     //
-    // // let img = u8_to_u16(dst_image.buffer());
-    // //
-    // // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
-    // // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
+    // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
+    // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
     // image::save_buffer(
     //     "fast_image.png",
     //     dst_image.buffer(),
