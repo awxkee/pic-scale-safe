@@ -27,24 +27,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-pub mod bartlett;
-pub mod bc_spline;
+pub(crate) mod bartlett;
+pub(crate) mod bc_spline;
 mod bessel_order_one;
-pub mod bilinear;
-pub mod blackman;
-pub mod bohman;
+pub(crate) mod bilinear;
+pub(crate) mod blackman;
+pub(crate) mod bohman;
 mod consts;
-pub mod cubic;
-pub mod gaussian;
-pub mod hann;
-pub mod kaiser;
-pub mod lagrange;
-pub mod lanczos;
-pub mod quadric;
-pub mod sinc;
-pub mod sphinx;
-pub mod spline_n;
-pub mod welch;
+pub(crate) mod cubic;
+pub(crate) mod gaussian;
+pub(crate) mod hann;
+pub(crate) mod kaiser;
+pub(crate) mod lagrange;
+pub(crate) mod lanczos;
+pub(crate) mod quadric;
+pub(crate) mod sinc;
+pub(crate) mod sphinx;
+pub(crate) mod spline_n;
+pub(crate) mod welch;
 
-pub use bessel_order_one::*;
-pub use consts::*;
+pub(crate) use bessel_order_one::*;
+pub(crate) use consts::*;

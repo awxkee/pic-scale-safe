@@ -26,14 +26,11 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#![allow(dead_code)]
-use crate::mixed_storage::MixedStorage;
 use crate::mlaf::mlaf;
 use crate::saturate_narrow::SaturateNarrow;
-use num_traits::{AsPrimitive, FromPrimitive, MulAdd, Num};
+use num_traits::{FromPrimitive, MulAdd};
 use std::ops::{Add, AddAssign, Mul, Shr, ShrAssign, Sub, SubAssign};
 
-#[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ColorGroup<const COMPS: usize, J: Copy> {
     pub r: J,
@@ -47,7 +44,7 @@ where
     J: Copy + Default,
 {
     #[inline(always)]
-    pub fn new() -> ColorGroup<COMPS, J> {
+    pub(crate) fn new() -> ColorGroup<COMPS, J> {
         ColorGroup {
             r: J::default(),
             g: J::default(),
@@ -57,12 +54,12 @@ where
     }
 
     #[inline(always)]
-    pub fn from_components(r: J, g: J, b: J, a: J) -> ColorGroup<COMPS, J> {
+    pub(crate) fn from_components(r: J, g: J, b: J, a: J) -> ColorGroup<COMPS, J> {
         ColorGroup { r, g, b, a }
     }
 
     #[inline(always)]
-    pub fn dup(v: J) -> ColorGroup<COMPS, J> {
+    pub(crate) fn dup(v: J) -> ColorGroup<COMPS, J> {
         ColorGroup {
             r: v,
             g: v,
@@ -72,8 +69,7 @@ where
     }
 }
 
-#[macro_export]
-macro_rules! fast_load_color_group {
+macro_rules! load_color_group {
     ($store: expr, $channels: expr, $vtype: ty) => {{
         if $channels == 1 {
             ColorGroup::<$channels, $vtype> {
@@ -104,13 +100,14 @@ macro_rules! fast_load_color_group {
                 a: $store[3].as_(),
             }
         } else {
-            panic!("Not implemented.")
+            unimplemented!("Not implemented.")
         }
     }};
 }
 
-#[macro_export]
-macro_rules! fast_load_color_group_with_offset {
+pub(crate) use load_color_group;
+
+macro_rules! load_color_group_with_offset {
     ($store: expr, $channels: expr, $offset: expr, $vtype: ty) => {{
         if $channels == 1 {
             ColorGroup::<$channels, $vtype> {
@@ -141,13 +138,14 @@ macro_rules! fast_load_color_group_with_offset {
                 a: $store[$offset + 3].as_(),
             }
         } else {
-            panic!("Not implemented.")
+            unimplemented!("Not implemented.")
         }
     }};
 }
 
-#[macro_export]
-macro_rules! fast_store_color_group {
+pub(crate) use load_color_group_with_offset;
+
+macro_rules! store_color_group {
     ($color_group: expr, $store: expr, $components: expr) => {{
         $store[0] = $color_group.r;
         if $components > 1 {
@@ -162,7 +160,8 @@ macro_rules! fast_store_color_group {
     }};
 }
 
-#[macro_export]
+pub(crate) use store_color_group;
+
 macro_rules! fast_mixed_store_color_group {
     ($color_group: expr, $store: expr, $components: expr, $bit_depth: expr) => {{
         $store[0] = $color_group.r.to_mixed($bit_depth);
@@ -178,157 +177,7 @@ macro_rules! fast_mixed_store_color_group {
     }};
 }
 
-impl<const COMPS: usize, J> ColorGroup<COMPS, J>
-where
-    J: Copy + Default + 'static,
-{
-    #[inline(always)]
-    pub fn from_slice<T>(store: &[T]) -> ColorGroup<COMPS, J>
-    where
-        T: AsPrimitive<J>,
-    {
-        if COMPS == 1 {
-            ColorGroup {
-                r: store[0].as_(),
-                g: J::default(),
-                b: J::default(),
-                a: J::default(),
-            }
-        } else if COMPS == 2 {
-            ColorGroup {
-                r: store[0].as_(),
-                g: store[1].as_(),
-                b: J::default(),
-                a: J::default(),
-            }
-        } else if COMPS == 3 {
-            ColorGroup {
-                r: store[0].as_(),
-                g: store[1].as_(),
-                b: store[2].as_(),
-                a: J::default(),
-            }
-        } else if COMPS == 4 {
-            ColorGroup {
-                r: store[0].as_(),
-                g: store[1].as_(),
-                b: store[2].as_(),
-                a: store[3].as_(),
-            }
-        } else {
-            panic!("Not implemented.")
-        }
-    }
-
-    #[inline(always)]
-    pub fn to_mixed_store<V: Copy + 'static>(self, ptr: &mut [V], bit_depth: u32)
-    where
-        J: MixedStorage<V>,
-    {
-        ptr[0] = self.r.to_mixed(bit_depth);
-        if COMPS > 1 {
-            ptr[1] = self.g.to_mixed(bit_depth);
-        }
-        if COMPS > 2 {
-            ptr[2] = self.b.to_mixed(bit_depth);
-        }
-        if COMPS == 4 {
-            ptr[3] = self.a.to_mixed(bit_depth);
-        }
-    }
-
-    #[inline(always)]
-    pub fn to_store(self, ptr: &mut [J]) {
-        ptr[0] = self.r;
-        if COMPS > 1 {
-            ptr[1] = self.g;
-        }
-        if COMPS > 2 {
-            ptr[2] = self.b;
-        }
-        if COMPS == 4 {
-            ptr[3] = self.a;
-        }
-    }
-
-    #[inline(always)]
-    pub fn as_ptr<V: Copy + 'static>(self, ptr: &mut [V])
-    where
-        J: Copy + AsPrimitive<V>,
-    {
-        ptr[0] = self.r.as_();
-        if COMPS > 1 {
-            ptr[1] = self.g.as_();
-        }
-        if COMPS > 2 {
-            ptr[2] = self.b.as_();
-        }
-        if COMPS == 4 {
-            ptr[3] = self.a.as_();
-        }
-    }
-}
-
-impl<const COMPS: usize, J> ColorGroup<COMPS, J>
-where
-    J: Copy + Default + 'static + Num + Ord,
-{
-    #[inline(always)]
-    pub fn min_scalar(&self, other: J) -> ColorGroup<COMPS, J> {
-        if COMPS == 1 {
-            ColorGroup::from_components(self.r.min(other), J::default(), J::default(), J::default())
-        } else if COMPS == 2 {
-            ColorGroup::from_components(
-                self.r.min(other),
-                self.g.min(other),
-                J::default(),
-                J::default(),
-            )
-        } else if COMPS == 3 {
-            ColorGroup::from_components(
-                self.r.min(other),
-                self.g.min(other),
-                self.b.min(other),
-                J::default(),
-            )
-        } else {
-            ColorGroup::from_components(
-                self.r.min(other),
-                self.g.min(other),
-                self.b.min(other),
-                self.a.min(other),
-            )
-        }
-    }
-
-    #[inline(always)]
-    pub(crate) fn max_scalar(&self, other: J) -> ColorGroup<COMPS, J> {
-        if COMPS == 1 {
-            ColorGroup::from_components(self.r.max(other), J::default(), J::default(), J::default())
-        } else if COMPS == 2 {
-            ColorGroup::from_components(
-                self.r.max(other),
-                self.g.max(other),
-                J::default(),
-                J::default(),
-            )
-        } else if COMPS == 3 {
-            ColorGroup::from_components(
-                self.r.max(other),
-                self.g.max(other),
-                self.b.max(other),
-                J::default(),
-            )
-        } else {
-            ColorGroup::from_components(
-                self.r.max(other),
-                self.g.max(other),
-                self.b.max(other),
-                self.a.max(other),
-            )
-        }
-    }
-}
+pub(crate) use fast_mixed_store_color_group;
 
 impl<const COMPS: usize, J> Mul<J> for ColorGroup<COMPS, J>
 where
@@ -347,7 +196,7 @@ where
         } else if COMPS == 4 {
             ColorGroup::from_components(self.r * rhs, self.g * rhs, self.b * rhs, self.a * rhs)
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }
@@ -357,7 +206,7 @@ where
     J: Copy + Default + 'static,
 {
     #[inline(always)]
-    pub fn saturate_narrow<V>(&self, bit_depth: u32) -> ColorGroup<COMPS, V>
+    pub(crate) fn saturate_narrow<V>(&self, bit_depth: u32) -> ColorGroup<COMPS, V>
     where
         V: Copy + Default,
         J: SaturateNarrow<V>,
@@ -416,7 +265,7 @@ where
                 self.a * rhs.b,
             )
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }
@@ -438,7 +287,7 @@ where
         } else if COMPS == 4 {
             ColorGroup::from_components(self.r - rhs, self.g - rhs, self.b - rhs, self.a - rhs)
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }
@@ -465,7 +314,7 @@ where
                 self.a - rhs.a,
             )
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }
@@ -492,7 +341,7 @@ where
                 self.a + rhs.a,
             )
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }
@@ -514,7 +363,7 @@ where
         } else if COMPS == 4 {
             ColorGroup::from_components(self.r + rhs, self.g + rhs, self.b + rhs, self.a + rhs)
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }
@@ -536,7 +385,7 @@ where
         } else if COMPS == 4 {
             ColorGroup::from_components(self.r >> rhs, self.g >> rhs, self.b >> rhs, self.a >> rhs)
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }
@@ -592,7 +441,7 @@ where
                 mlaf(self.a, a.a, b),
             )
         } else {
-            panic!("Not implemented.");
+            unimplemented!("Not implemented.");
         }
     }
 }

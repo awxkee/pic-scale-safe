@@ -32,7 +32,7 @@ use num_traits::AsPrimitive;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[inline(always)]
-pub fn bc_spline<
+pub(crate) fn bc_spline<
     V: Copy
         + Add<Output = V>
         + Mul<Output = V>
@@ -72,7 +72,7 @@ where
 }
 
 #[inline(always)]
-pub fn hermite_spline<
+pub(crate) fn hermite_spline<
     V: Copy
         + Add<Output = V>
         + Mul<Output = V>
@@ -92,7 +92,7 @@ where
 }
 
 #[inline(always)]
-pub fn b_spline<
+pub(crate) fn b_spline<
     V: Copy
         + Add<Output = V>
         + Mul<Output = V>
@@ -112,7 +112,7 @@ where
 }
 
 #[inline(always)]
-pub fn mitchell_netravalli<
+pub(crate) fn mitchell_netravalli<
     V: Copy
         + Add<Output = V>
         + Mul<Output = V>
@@ -132,7 +132,7 @@ where
 }
 
 #[inline(always)]
-pub fn catmull_rom<
+pub(crate) fn catmull_rom<
     V: Copy
         + Add<Output = V>
         + Mul<Output = V>
@@ -152,7 +152,7 @@ where
 }
 
 #[inline(always)]
-pub fn robidoux<
+pub(crate) fn robidoux<
     V: Copy
         + Add<Output = V>
         + Mul<Output = V>
@@ -177,7 +177,7 @@ where
 }
 
 #[inline(always)]
-pub fn robidoux_sharp<
+pub(crate) fn robidoux_sharp<
     V: Copy
         + Add<Output = V>
         + Mul<Output = V>

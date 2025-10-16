@@ -69,7 +69,7 @@ where
         true => scale.max(1f32.as_()),
         false => 1f32.as_(),
     };
-    let filter_base_size = resampling_filter.min_kernel_size;
+    let filter_base_size = resampling_filter.min_kernel_size * 2.;
     let resampling_function = resampling_filter.kernel;
     let window_func = resampling_filter.window;
 

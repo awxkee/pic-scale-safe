@@ -26,7 +26,9 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-use crate::{resize_fixed_point, resize_floating_point, ImageSize, ResamplingFunction};
+use crate::resize_fixed_point::resize_fixed_point;
+use crate::resize_floating_point::resize_floating_point;
+use crate::{ImageSize, ResamplingFunction};
 
 /// Performs resizing on RGBA 8 bit-depth image
 ///
@@ -516,6 +518,42 @@ pub fn resize_plane_f32(
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<f32>, String> {
     resize_floating_point::<f32, f32, f32, 1>(
+        source,
+        source_size,
+        destination_size,
+        8,
+        resampling_function,
+    )
+}
+
+/// Performs resizing on Luma-alpha f32 image
+///
+/// Any content preferred to be in linear colorspace or perceptual before resizing,
+/// consider using [crate::linear_f32_to_gamma_image_f32] and [crate::image_f32_to_linear_f32] if required,
+/// otherwise results will degrade.
+///
+/// # Arguments
+///
+/// * `source`: Source image
+/// * `source_size`: Source image size
+/// * `destination_size`: Destination image size
+/// * `resampling_function`: Resampling filter, see [ResamplingFunction] for more info
+///
+/// # Returns
+///
+/// Resized image, this bounds always match destination size
+///
+/// # Limitations
+///
+/// The contract `width * channels < usize::MAX` must be always satisfied and cannot be broken
+///
+pub fn resize_luma_alpha_f32(
+    source: &[f32],
+    source_size: ImageSize,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<f32>, String> {
+    resize_floating_point::<f32, f32, f32, 2>(
         source,
         source_size,
         destination_size,

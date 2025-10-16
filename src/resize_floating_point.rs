@@ -53,7 +53,7 @@ use std::ops::{AddAssign, MulAssign, Neg};
 /// * `J`- accumulator type
 /// * `F` - floating kernel type, only `f32` and `f64` possible
 ///
-pub fn resize_floating_point<T, J, F, const CHANNELS: usize>(
+pub(crate) fn resize_floating_point<T, J, F, const CHANNELS: usize>(
     src: &[T],
     source_size: ImageSize,
     destination_size: ImageSize,

@@ -30,20 +30,13 @@ mod image_wrapper;
 
 use fast_image_resize::images::Image;
 use fast_image_resize::{CpuExtensions, FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer};
-use image::{
-    imageops, DynamicImage, EncodableLayout, GenericImageView, ImageBuffer, ImageFormat,
-    ImageReader, Rgb, RgbImage,
-};
-use pic_scale_safe::{
-    premultiply_rgba8, resize_fixed_point, resize_floating_point, resize_rgb16, resize_rgb8,
-    resize_rgb_f32, resize_rgba16, resize_rgba8, unpremultiply_rgba8, ImageSize,
-    ResamplingFunction,
-};
+use image::{imageops, EncodableLayout, GenericImageView, ImageReader};
+use pic_scale_safe::{resize_rgb8, resize_rgba8, ImageSize, ResamplingFunction};
 use std::ops::{BitXor, Shr};
 use std::time::Instant;
 
 fn main() {
-    let img = ImageReader::open("./assets/nasa-4928x3279.png")
+    let img = ImageReader::open("./assets/test_alpha.JPG")
         .unwrap()
         .decode()
         .unwrap();
@@ -53,21 +46,22 @@ fn main() {
     let mut working_store = transient.to_vec();
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
-    let dst_size = ImageSize::new(dimensions.0 as usize + 1, dimensions.1 as usize + 1);
+    // let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
+    let dst_size = ImageSize::new(3240, 2160);
 
-    let start_mul = Instant::now();
-
-    premultiply_rgba8(&mut working_store);
-
-    println!("Alpha mul time {:?}", start_mul.elapsed());
+    // let start_mul = Instant::now();
+    //
+    // // premultiply_rgba8(&mut working_store);
+    //
+    // println!("Alpha mul time {:?}", start_mul.elapsed());
 
     let start = Instant::now();
 
-    let mut resized = resize_rgba8(
+    let resized = resize_rgba8(
         &working_store,
         src_size,
         dst_size,
-        ResamplingFunction::Bilinear,
+        ResamplingFunction::CatmullRom,
     )
     .unwrap();
 
@@ -96,7 +90,7 @@ fn main() {
     // let pixel_type: PixelType = PixelType::U8x4;
     // let src_image =
     //     Image::from_slice_u8(dimensions.0, dimensions.1, &mut src_bytes, pixel_type).unwrap();
-    // let mut dst_image = Image::new(dimensions.0 / 2, dimensions.1 / 2, pixel_type);
+    // let mut dst_image = Image::new(dimensions.0 / 4, dimensions.1 / 4, pixel_type);
     //
     // let mut resizer = Resizer::new();
     // unsafe {
@@ -116,11 +110,11 @@ fn main() {
     //     .unwrap();
     //
     // println!("Working time {:?}", start.elapsed());
+
+    // let img = u8_to_u16(dst_image.buffer());
     //
-    // // let img = u8_to_u16(dst_image.buffer());
-    // //
-    // // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
-    // // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
+    // let rgba_image = DynamicImage::ImageRgb8(RgbImage::from_raw(dst_image.width() as u32, dst_image.height() as u32, dst_image.buffer().to_vec()).unwrap());
+    // rgba_image.save_with_format("fast_image.png", ImageFormat::Png).unwrap();
     // image::save_buffer(
     //     "fast_image.png",
     //     dst_image.buffer(),

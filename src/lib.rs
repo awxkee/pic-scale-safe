@@ -29,8 +29,10 @@
 
 #![forbid(unsafe_code)]
 #![allow(clippy::manual_clamp)]
+#![deny(dead_code, unreachable_pub)]
 
 mod alpha;
+mod alpha_check;
 mod color_group;
 mod compute_weights;
 mod definitions;
@@ -56,9 +58,11 @@ mod trc;
 mod trc_handler;
 
 pub use alpha::*;
+pub use alpha_check::{
+    has_non_constant_alpha_la16, has_non_constant_alpha_la8, has_non_constant_alpha_luma_alpha_f32,
+    has_non_constant_alpha_rgba16, has_non_constant_alpha_rgba8, has_non_constant_alpha_rgba_f32,
+};
 pub use image_size::ImageSize;
-pub use resize_fixed_point::resize_fixed_point;
-pub use resize_floating_point::resize_floating_point;
 pub use resizer::*;
 pub use sampler::ResamplingFunction;
 pub use trc::*;

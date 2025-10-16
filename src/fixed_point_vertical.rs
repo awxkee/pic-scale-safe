@@ -26,6 +26,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+use crate::definitions::ROUNDING_CONST;
 use crate::filter_weights::FilterBounds;
 use crate::saturate_narrow::SaturateNarrow;
 use num_traits::AsPrimitive;
@@ -54,7 +55,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer<
     if filter.is_empty() {
         return;
     }
-    let mut direct_store: [J; BUFFER_SIZE] = [J::default(); BUFFER_SIZE];
+    let mut direct_store: [J; BUFFER_SIZE] = [ROUNDING_CONST.as_(); BUFFER_SIZE];
 
     let v_start_px = x;
 
@@ -108,8 +109,8 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer_double<
     if filter.is_empty() {
         return;
     }
-    let mut direct_store0: [J; BUFFER_SIZE] = [J::default(); BUFFER_SIZE];
-    let mut direct_store1: [J; BUFFER_SIZE] = [J::default(); BUFFER_SIZE];
+    let mut direct_store0: [J; BUFFER_SIZE] = [ROUNDING_CONST.as_(); BUFFER_SIZE];
+    let mut direct_store1: [J; BUFFER_SIZE] = [ROUNDING_CONST.as_(); BUFFER_SIZE];
 
     let v_start_px = x;
 
@@ -177,10 +178,10 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer_four<
     if filter.is_empty() {
         return;
     }
-    let mut direct_store0: [J; BUFFER_SIZE] = [J::default(); BUFFER_SIZE];
-    let mut direct_store1: [J; BUFFER_SIZE] = [J::default(); BUFFER_SIZE];
-    let mut direct_store2: [J; BUFFER_SIZE] = [J::default(); BUFFER_SIZE];
-    let mut direct_store3: [J; BUFFER_SIZE] = [J::default(); BUFFER_SIZE];
+    let mut direct_store0: [J; BUFFER_SIZE] = [ROUNDING_CONST.as_(); BUFFER_SIZE];
+    let mut direct_store1: [J; BUFFER_SIZE] = [ROUNDING_CONST.as_(); BUFFER_SIZE];
+    let mut direct_store2: [J; BUFFER_SIZE] = [ROUNDING_CONST.as_(); BUFFER_SIZE];
+    let mut direct_store3: [J; BUFFER_SIZE] = [ROUNDING_CONST.as_(); BUFFER_SIZE];
 
     let v_start_px = x;
 
@@ -259,9 +260,7 @@ pub(crate) fn convolve_column_handler_fixed_point_direct_buffer_four<
 pub(crate) fn column_handler_fixed_point<
     T: Copy + 'static + AsPrimitive<J> + Default,
     J: Copy + 'static + AsPrimitive<T> + Mul<Output = J> + AddAssign + SaturateNarrow<T> + Default,
-    const COMPONENTS: usize,
 >(
-    dst_width: usize,
     bounds: &FilterBounds,
     src: &[T],
     dst: &mut [T],
@@ -274,7 +273,7 @@ pub(crate) fn column_handler_fixed_point<
 {
     let mut cx = 0usize;
 
-    let total_width = COMPONENTS * dst_width;
+    let total_width = dst.len();
 
     while cx + 64 < total_width {
         convolve_column_handler_fixed_point_direct_buffer_four::<T, J, 16>(

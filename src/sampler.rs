@@ -155,7 +155,7 @@ impl From<u32> for ResamplingFunction {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct ResamplingWindow<T> {
+pub(crate) struct ResamplingWindow<T> {
     pub(crate) window: fn(T) -> T,
     pub(crate) window_size: f32,
     pub(crate) blur: f32,
@@ -174,7 +174,7 @@ impl<T> ResamplingWindow<T> {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct ResamplingFilter<T> {
+pub(crate) struct ResamplingFilter<T> {
     pub kernel: fn(T) -> T,
     pub window: Option<ResamplingWindow<T>>,
     pub min_kernel_size: f32,
@@ -229,7 +229,7 @@ impl<T> ResamplingFilter<T> {
 }
 
 impl ResamplingFunction {
-    pub fn get_resampling_filter<T>(&self) -> ResamplingFilter<T>
+    pub(crate) fn get_resampling_filter<T>(&self) -> ResamplingFilter<T>
     where
         T: Copy
             + Neg
@@ -248,8 +248,8 @@ impl ResamplingFunction {
         usize: AsPrimitive<T>,
     {
         match self {
-            ResamplingFunction::Bilinear => ResamplingFilter::new(bilinear, 2f32),
-            ResamplingFunction::Area => ResamplingFilter::new_area(box_weight, 2f32),
+            ResamplingFunction::Bilinear => ResamplingFilter::new(bilinear, 1f32),
+            ResamplingFunction::Area => ResamplingFilter::new_area(box_weight, 0.5f32),
             ResamplingFunction::Nearest => {
                 // Just a stab for nearest
                 ResamplingFilter::new(bilinear, 2f32)
@@ -266,7 +266,7 @@ impl ResamplingFunction {
             ResamplingFunction::Bicubic => ResamplingFilter::new(bicubic_spline, 2f32),
             ResamplingFunction::Lanczos4 => ResamplingFilter::new(lanczos4, 4f32),
             ResamplingFunction::Lanczos2 => ResamplingFilter::new(lanczos2, 2f32),
-            ResamplingFunction::Hamming => ResamplingFilter::new(hamming, 2f32),
+            ResamplingFunction::Hamming => ResamplingFilter::new(hamming, 1f32),
             ResamplingFunction::Hanning => ResamplingFilter::new(hanning, 2f32),
             ResamplingFunction::Welch => ResamplingFilter::new(welch, 2f32),
             ResamplingFunction::Quadric => ResamplingFilter::new(quadric, 2f32),

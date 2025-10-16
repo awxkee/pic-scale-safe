@@ -59,7 +59,7 @@ use std::ops::{AddAssign, Mul};
 ///
 /// If called with HDR content it will be erased.
 ///
-pub fn resize_fixed_point<T, J, const CHANNELS: usize>(
+pub(crate) fn resize_fixed_point<T, J, const CHANNELS: usize>(
     src: &[T],
     source_size: ImageSize,
     destination_size: ImageSize,

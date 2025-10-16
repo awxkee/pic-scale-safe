@@ -31,7 +31,7 @@ use rayon::iter::{IndexedParallelIterator, ParallelIterator};
 #[cfg(feature = "rayon")]
 use rayon::prelude::ParallelSliceMut;
 
-pub fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
+pub(crate) fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
     src: &[T],
     src_width: usize,
     src_height: usize,

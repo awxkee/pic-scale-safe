@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-pub trait ConstSqrt2 {
+pub(crate) trait ConstSqrt2 {
     fn const_sqrt2() -> Self;
 }
 
@@ -43,7 +43,7 @@ impl ConstSqrt2 for f64 {
     }
 }
 
-pub trait ConstPI {
+pub(crate) trait ConstPI {
     fn const_pi() -> Self;
 }
 
