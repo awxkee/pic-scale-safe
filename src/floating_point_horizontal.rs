@@ -27,8 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use crate::color_group::{
-    load_color_group, load_color_group_with_offset, fast_mixed_store_color_group,
-    ColorGroup,
+    fast_mixed_store_color_group, load_color_group, load_color_group_with_offset, ColorGroup,
 };
 use crate::filter_weights::FilterWeights;
 use crate::mixed_storage::MixedStorage;

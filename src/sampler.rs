@@ -248,8 +248,8 @@ impl ResamplingFunction {
         usize: AsPrimitive<T>,
     {
         match self {
-            ResamplingFunction::Bilinear => ResamplingFilter::new(bilinear, 2f32),
-            ResamplingFunction::Area => ResamplingFilter::new_area(box_weight, 2f32),
+            ResamplingFunction::Bilinear => ResamplingFilter::new(bilinear, 1f32),
+            ResamplingFunction::Area => ResamplingFilter::new_area(box_weight, 0.5f32),
             ResamplingFunction::Nearest => {
                 // Just a stab for nearest
                 ResamplingFilter::new(bilinear, 2f32)
@@ -266,7 +266,7 @@ impl ResamplingFunction {
             ResamplingFunction::Bicubic => ResamplingFilter::new(bicubic_spline, 2f32),
             ResamplingFunction::Lanczos4 => ResamplingFilter::new(lanczos4, 4f32),
             ResamplingFunction::Lanczos2 => ResamplingFilter::new(lanczos2, 2f32),
-            ResamplingFunction::Hamming => ResamplingFilter::new(hamming, 2f32),
+            ResamplingFunction::Hamming => ResamplingFilter::new(hamming, 1f32),
             ResamplingFunction::Hanning => ResamplingFilter::new(hanning, 2f32),
             ResamplingFunction::Welch => ResamplingFilter::new(welch, 2f32),
             ResamplingFunction::Quadric => ResamplingFilter::new(quadric, 2f32),

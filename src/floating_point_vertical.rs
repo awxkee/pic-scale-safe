@@ -27,8 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use crate::color_group::{
-    load_color_group, load_color_group_with_offset, fast_mixed_store_color_group,
-    ColorGroup,
+    fast_mixed_store_color_group, load_color_group, load_color_group_with_offset, ColorGroup,
 };
 use crate::filter_weights::FilterBounds;
 use crate::mixed_storage::MixedStorage;
@@ -86,11 +85,10 @@ pub(crate) fn convolve_column_handler_floating_point_4<
             load_color_group_with_offset!(src_ptr1, CHANNELS, 0, J),
             weight1,
         );
-        sums1 = (load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight0)
-            .mul_add(
-                load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS, J),
-                weight1,
-            );
+        sums1 = (load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight0).mul_add(
+            load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS, J),
+            weight1,
+        );
         sums2 = (load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 2, J) * weight0)
             .mul_add(
                 load_color_group_with_offset!(src_ptr1, CHANNELS, CHANNELS * 2, J),
