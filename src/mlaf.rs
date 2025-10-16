@@ -53,7 +53,7 @@ pub(crate) fn mlaf<T: Copy + Mul<T, Output = T> + Add<T, Output = T> + MulAdd<T,
     ),
     all(target_arch = "aarch64", target_feature = "neon")
 )))]
-pub fn mlaf<T: Copy + Mul<T, Output = T> + Add<T, Output = T> + MulAdd<T, Output = T>>(
+pub(crate) fn mlaf<T: Copy + Mul<T, Output = T> + Add<T, Output = T> + MulAdd<T, Output = T>>(
     acc: T,
     a: T,
     b: T,
