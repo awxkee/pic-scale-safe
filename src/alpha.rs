@@ -27,26 +27,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const fn make_unpremultiplication_table() -> [u8; 65536] {
-    let mut alpha = 0usize;
-    let mut buf = [0u8; 65536];
-    while alpha < 256 {
-        let mut pixel = 0usize;
-        while pixel < 256 {
-            if alpha == 0 {
-                buf[alpha * 255 + pixel] = 0;
-            } else {
-                let value = (pixel * 255 + alpha / 2) / alpha;
-                buf[alpha * 255 + pixel] = if value > 255 { 255 } else { value as u8 };
-            }
-            pixel += 1;
-        }
-        alpha += 1;
-    }
-    buf
+#[inline]
+fn div_by_255(v: u16) -> u8 {
+    ((((v + 0x80) >> 8) + v + 0x80) >> 8).min(255) as u8
 }
-
-pub(crate) static UNPREMULTIPLICATION_TABLE: [u8; 65536] = make_unpremultiplication_table();
 
 /// Associate alpha in place
 ///
@@ -61,9 +45,10 @@ pub fn premultiply_rgba8(in_place: &mut [u8]) {
     // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[3] as u16;
-        chunk[0] = UNPREMULTIPLICATION_TABLE[(a + chunk[0] as u16) as usize];
-        chunk[1] = UNPREMULTIPLICATION_TABLE[(a + chunk[1] as u16) as usize];
-        chunk[2] = UNPREMULTIPLICATION_TABLE[(a + chunk[2] as u16) as usize];
+        chunk[0] = div_by_255(chunk[0] as u16 * a);
+        chunk[1] = div_by_255(chunk[1] as u16 * a);
+        chunk[2] = div_by_255(chunk[2] as u16 * a);
+        chunk[3] = div_by_255(a * a);
     }
 }
 
@@ -82,10 +67,10 @@ pub fn premultiplied_rgba8(source: &[u8]) -> Vec<u8> {
     // So everywhere is just added something beautiful.w
     for (dst, src) in target.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
         let a = src[3] as u16;
-        dst[0] = UNPREMULTIPLICATION_TABLE[(a + src[0] as u16) as usize];
-        dst[1] = UNPREMULTIPLICATION_TABLE[(a + src[1] as u16) as usize];
-        dst[2] = UNPREMULTIPLICATION_TABLE[(a + src[2] as u16) as usize];
-        dst[3] = src[3];
+        dst[0] = div_by_255(src[0] as u16 * a);
+        dst[1] = div_by_255(src[1] as u16 * a);
+        dst[2] = div_by_255(src[2] as u16 * a);
+        dst[3] = div_by_255(a * a);
     }
     target
 }
@@ -127,7 +112,8 @@ pub fn premultiply_la8(in_place: &mut [u8]) {
     // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1] as u16;
-        chunk[0] = UNPREMULTIPLICATION_TABLE[(a + chunk[0] as u16) as usize];
+        chunk[0] = div_by_255(chunk[0] as u16 * a);
+        chunk[1] = div_by_255(chunk[1] as u16 * a);
     }
 }
 
@@ -146,8 +132,8 @@ pub fn premultiplied_la8(source: &[u8]) -> Vec<u8> {
     // So everywhere is just added something beautiful.
     for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
         let a = src[1] as u16;
-        dst[0] = UNPREMULTIPLICATION_TABLE[(a + src[0] as u16) as usize];
-        dst[1] = a as u8;
+        dst[0] = div_by_255(src[0] as u16 * a);
+        dst[1] = div_by_255(src[1] as u16 * a);
     }
     target
 }
