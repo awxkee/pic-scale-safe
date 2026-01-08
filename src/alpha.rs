@@ -27,6 +27,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#[inline]
+fn div_by_255(v: u16) -> u8 {
+    ((((v + 0x80) >> 8) + v + 0x80) >> 8).min(255) as u8
+}
+
 const fn make_unpremultiplication_table() -> [u8; 65536] {
     let mut alpha = 0usize;
     let mut buf = [0u8; 65536];
@@ -61,9 +66,10 @@ pub fn premultiply_rgba8(in_place: &mut [u8]) {
     // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[3] as u16;
-        chunk[0] = UNPREMULTIPLICATION_TABLE[(a + chunk[0] as u16) as usize];
-        chunk[1] = UNPREMULTIPLICATION_TABLE[(a + chunk[1] as u16) as usize];
-        chunk[2] = UNPREMULTIPLICATION_TABLE[(a + chunk[2] as u16) as usize];
+        chunk[0] = div_by_255(chunk[0] as u16 * a);
+        chunk[1] = div_by_255(chunk[1] as u16 * a);
+        chunk[2] = div_by_255(chunk[2] as u16 * a);
+        chunk[3] = div_by_255(255 * a);
     }
 }
 
@@ -79,13 +85,13 @@ pub fn premultiply_rgba8(in_place: &mut [u8]) {
 pub fn premultiplied_rgba8(source: &[u8]) -> Vec<u8> {
     let mut target = vec![0u8; source.len()];
     // Almost all loops are not auto-vectorised without doing anything dirty.
-    // So everywhere is just added something beautiful.w
+    // So everywhere is just added something beautiful.
     for (dst, src) in target.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
         let a = src[3] as u16;
-        dst[0] = UNPREMULTIPLICATION_TABLE[(a + src[0] as u16) as usize];
-        dst[1] = UNPREMULTIPLICATION_TABLE[(a + src[1] as u16) as usize];
-        dst[2] = UNPREMULTIPLICATION_TABLE[(a + src[2] as u16) as usize];
-        dst[3] = src[3];
+        dst[0] = div_by_255(src[0] as u16 * a);
+        dst[1] = div_by_255(src[1] as u16 * a);
+        dst[2] = div_by_255(src[2] as u16 * a);
+        dst[3] = div_by_255(255 * a);
     }
     target
 }
@@ -100,17 +106,12 @@ pub fn premultiplied_rgba8(source: &[u8]) -> Vec<u8> {
 ///
 ///
 pub fn unpremultiply_rgba8(in_place: &mut [u8]) {
-    // Almost all loops are not auto-vectorised without doing anything dirty.
-    // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[3];
-        if a != 0 {
-            let a_recip = 1. / a as f32;
-            chunk[0] = ((chunk[0] as f32 * 255.) * a_recip) as u8;
-            chunk[1] = ((chunk[1] as f32 * 255.) * a_recip) as u8;
-            chunk[2] = ((chunk[2] as f32 * 255.) * a_recip) as u8;
-            chunk[3] = ((a as f32 * 255.) * a_recip) as u8;
-        }
+        let z = a as u16 * 255;
+        chunk[0] = UNPREMULTIPLICATION_TABLE[(z + chunk[0] as u16) as usize];
+        chunk[1] = UNPREMULTIPLICATION_TABLE[(z + chunk[1] as u16) as usize];
+        chunk[2] = UNPREMULTIPLICATION_TABLE[(z + chunk[2] as u16) as usize];
     }
 }
 
@@ -127,7 +128,8 @@ pub fn premultiply_la8(in_place: &mut [u8]) {
     // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1] as u16;
-        chunk[0] = UNPREMULTIPLICATION_TABLE[(a + chunk[0] as u16) as usize];
+        chunk[0] = div_by_255(chunk[0] as u16 * a);
+        chunk[1] = div_by_255(255 * a);
     }
 }
 
@@ -146,8 +148,8 @@ pub fn premultiplied_la8(source: &[u8]) -> Vec<u8> {
     // So everywhere is just added something beautiful.
     for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
         let a = src[1] as u16;
-        dst[0] = UNPREMULTIPLICATION_TABLE[(a + src[0] as u16) as usize];
-        dst[1] = a as u8;
+        dst[0] = div_by_255(src[0] as u16 * a);
+        dst[1] = div_by_255(255 * a);
     }
     target
 }
@@ -160,17 +162,14 @@ pub fn premultiplied_la8(source: &[u8]) -> Vec<u8> {
 ///
 /// * `in_place`: Slice to work on
 ///
-///
 pub fn unpremultiply_la8(in_place: &mut [u8]) {
     // Almost all loops are not auto-vectorised without doing anything dirty.
     // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1];
-        if a != 0 {
-            let a_recip = 1. / a as f32;
-            chunk[0] = ((chunk[0] as f32 * 255.) * a_recip) as u8;
-            chunk[1] = ((a as f32 * 255.) * a_recip) as u8;
-        }
+        let z = a as u16 * 255;
+        chunk[0] = UNPREMULTIPLICATION_TABLE[(z + chunk[0] as u16) as usize];
+        chunk[1] = UNPREMULTIPLICATION_TABLE[(z + chunk[1] as u16) as usize];
     }
 }
 
@@ -216,7 +215,7 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
             chunk[0] = div_by_1023(chunk[0] as u32 * a);
             chunk[1] = div_by_1023(chunk[1] as u32 * a);
             chunk[2] = div_by_1023(chunk[2] as u32 * a);
-            chunk[3] = div_by_1023(a * a);
+            chunk[3] = div_by_1023(1023 * a);
         }
     } else if bit_depth == 12 {
         for chunk in in_place.chunks_exact_mut(4) {
@@ -224,7 +223,7 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
             chunk[0] = div_by_4095(chunk[0] as u32 * a);
             chunk[1] = div_by_4095(chunk[1] as u32 * a);
             chunk[2] = div_by_4095(chunk[2] as u32 * a);
-            chunk[3] = div_by_4095(a * a);
+            chunk[3] = div_by_4095(4095 * a);
         }
     } else if bit_depth == 16 {
         for chunk in in_place.chunks_exact_mut(4) {
@@ -232,19 +231,19 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
             chunk[0] = div_by_65535(chunk[0] as u32 * a);
             chunk[1] = div_by_65535(chunk[1] as u32 * a);
             chunk[2] = div_by_65535(chunk[2] as u32 * a);
-            chunk[3] = div_by_65535(a * a);
+            chunk[3] = div_by_65535(65535 * a);
         }
     } else {
         for chunk in in_place.chunks_exact_mut(4) {
             let a = chunk[3] as u32;
             chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
             chunk[1] = (((chunk[1] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
             chunk[2] = (((chunk[2] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
-            chunk[3] =
-                (((a * a) as f32 * recip_max_colors).round() as u32).min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
+            chunk[3] = (((max_colors * a) as f32 * recip_max_colors).round() as u32).min(max_colors)
+                as u16;
         }
     }
 }
@@ -272,7 +271,7 @@ pub fn premultiplied_rgba16(source: &[u16], bit_depth: u32) -> Vec<u16> {
             dst[0] = div_by_1023(src[0] as u32 * a);
             dst[1] = div_by_1023(src[1] as u32 * a);
             dst[2] = div_by_1023(src[2] as u32 * a);
-            dst[3] = div_by_1023(a * a);
+            dst[3] = div_by_1023(1023 * a);
         }
     } else if bit_depth == 12 {
         for (dst, src) in target.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
@@ -280,7 +279,7 @@ pub fn premultiplied_rgba16(source: &[u16], bit_depth: u32) -> Vec<u16> {
             dst[0] = div_by_4095(src[0] as u32 * a);
             dst[1] = div_by_4095(src[1] as u32 * a);
             dst[2] = div_by_4095(src[2] as u32 * a);
-            dst[3] = div_by_4095(a * a);
+            dst[3] = div_by_4095(4095 * a);
         }
     } else if bit_depth == 16 {
         for (dst, src) in target.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
@@ -288,19 +287,19 @@ pub fn premultiplied_rgba16(source: &[u16], bit_depth: u32) -> Vec<u16> {
             dst[0] = div_by_65535(src[0] as u32 * a);
             dst[1] = div_by_65535(src[1] as u32 * a);
             dst[2] = div_by_65535(src[2] as u32 * a);
-            dst[3] = div_by_65535(a * a);
+            dst[3] = div_by_65535(65535 * a);
         }
     } else {
         for (dst, src) in target.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
             let a = src[3] as u32;
             dst[0] = (((src[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
             dst[1] = (((src[1] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
             dst[2] = (((src[2] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
-            dst[3] =
-                (((a * a) as f32 * recip_max_colors).round() as u32).min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
+            dst[3] = (((a * max_colors) as f32 * recip_max_colors).round() as u32).min(max_colors)
+                as u16;
         }
     }
     target
@@ -324,28 +323,28 @@ pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
         for chunk in in_place.chunks_exact_mut(2) {
             let a = chunk[1] as u32;
             chunk[0] = div_by_1023(chunk[0] as u32 * a);
-            chunk[1] = div_by_1023(a * a);
+            chunk[1] = div_by_1023(1023 * a);
         }
     } else if bit_depth == 12 {
         for chunk in in_place.chunks_exact_mut(2) {
             let a = chunk[1] as u32;
             chunk[0] = div_by_4095(chunk[0] as u32 * a);
-            chunk[1] = div_by_4095(a * a);
+            chunk[1] = div_by_4095(4095 * a);
         }
     } else if bit_depth == 16 {
         for chunk in in_place.chunks_exact_mut(2) {
             let a = chunk[1] as u32;
             chunk[0] = div_by_65535(chunk[0] as u32 * a);
-            chunk[1] = div_by_65535(a * a);
+            chunk[1] = div_by_65535(65535 * a);
         }
     } else {
         let recip_max_colors = 1. / max_colors as f32;
         for chunk in in_place.chunks_exact_mut(2) {
             let a = chunk[1] as u32;
             chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
-            chunk[1] =
-                (((a * a) as f32 * recip_max_colors).round() as u32).min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
+            chunk[1] = (((a * max_colors) as f32 * recip_max_colors).round() as u32).min(max_colors)
+                as u16;
         }
     }
 }
@@ -370,28 +369,28 @@ pub fn premultiplied_la16(source: &[u16], bit_depth: u32) -> Vec<u16> {
         for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
             let a = src[1] as u32;
             dst[0] = div_by_1023(src[0] as u32 * a);
-            dst[1] = div_by_1023(a * a);
+            dst[1] = div_by_1023(1023 * a);
         }
     } else if bit_depth == 12 {
         for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
             let a = src[1] as u32;
             dst[0] = div_by_4095(src[0] as u32 * a);
-            dst[1] = div_by_4095(a * a);
+            dst[1] = div_by_4095(4095 * a);
         }
     } else if bit_depth == 16 {
         for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
             let a = src[1] as u32;
             dst[0] = div_by_65535(src[0] as u32 * a);
-            dst[1] = div_by_65535(a * a);
+            dst[1] = div_by_65535(65535 * a);
         }
     } else {
         let recip_max_colors = 1. / max_colors as f32;
         for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
             let a = src[1] as u32;
             dst[0] = (((src[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors as u32) as u16;
-            dst[1] =
-                (((a * a) as f32 * recip_max_colors).round() as u32).min(max_colors as u32) as u16;
+                .min(max_colors) as u16;
+            dst[1] = (((max_colors * a) as f32 * recip_max_colors).round() as u32).min(max_colors)
+                as u16;
         }
     }
     target
@@ -440,11 +439,11 @@ pub fn unpremultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[3] as u32;
         if a != 0 {
-            let a_recip = 1. / a as f32;
-            chunk[0] = ((chunk[0] as u32 * max_colors) as f32 * a_recip) as u16;
-            chunk[1] = ((chunk[1] as u32 * max_colors) as f32 * a_recip) as u16;
-            chunk[2] = ((chunk[2] as u32 * max_colors) as f32 * a_recip) as u16;
-            chunk[3] = ((a * max_colors) as f32 * a_recip) as u16;
+            let a_recip = max_colors as f32 / a as f32;
+            chunk[0] = (chunk[0] as f32 * a_recip) as u16;
+            chunk[1] = (chunk[1] as f32 * a_recip) as u16;
+            chunk[2] = (chunk[2] as f32 * a_recip) as u16;
+            chunk[3] = (a as f32 * a_recip) as u16;
         }
     }
 }

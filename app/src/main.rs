@@ -31,12 +31,15 @@ mod image_wrapper;
 use fast_image_resize::images::Image;
 use fast_image_resize::{CpuExtensions, FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use image::{imageops, EncodableLayout, GenericImageView, ImageReader};
-use pic_scale_safe::{resize_rgb8, resize_rgba8, ImageSize, ResamplingFunction};
+use pic_scale_safe::{
+    premultiply_rgba8, resize_rgb8, resize_rgba8, unpremultiply_rgba8, ImageSize,
+    ResamplingFunction,
+};
 use std::ops::{BitXor, Shr};
 use std::time::Instant;
 
 fn main() {
-    let img = ImageReader::open("./assets/test_alpha.JPG")
+    let img = ImageReader::open("./assets/nasa-4928x3279-rgba.png")
         .unwrap()
         .decode()
         .unwrap();
@@ -51,13 +54,13 @@ fn main() {
 
     // let start_mul = Instant::now();
     //
-    // // premultiply_rgba8(&mut working_store);
+    premultiply_rgba8(&mut working_store);
     //
     // println!("Alpha mul time {:?}", start_mul.elapsed());
 
     let start = Instant::now();
 
-    let resized = resize_rgba8(
+    let mut resized = resize_rgba8(
         &working_store,
         src_size,
         dst_size,
@@ -65,7 +68,7 @@ fn main() {
     )
     .unwrap();
 
-    // unpremultiply_rgba8(&mut resized);
+    unpremultiply_rgba8(&mut resized);
 
     println!("Working time {:?}", start.elapsed());
 
