@@ -173,25 +173,25 @@ pub fn unpremultiply_la8(in_place: &mut [u8]) {
     }
 }
 
+/// Computes `round(v / (2**n - 1))`. The result is expected to fit in u16.
+#[inline(always)]
+fn div_by_2pn_m1(v: u32, n: u32) -> u16 {
+    debug_assert!(n > 0 && n <= 16);
+    let round = 1 << (n - 1);
+    let v = v + round;
+    (((v >> n) + v) >> n) as u16
+}
 #[inline]
 pub fn div_by_1023(v: u32) -> u16 {
-    let round = 1 << 9;
-    let v = v + round;
-    (((v >> 10) + v) >> 10) as u16
+    div_by_2pn_m1(v, 10)
 }
-
 #[inline]
 pub fn div_by_4095(v: u32) -> u16 {
-    let round = 1 << 11;
-    let v = v + round;
-    (((v >> 12) + v) >> 12) as u16
+    div_by_2pn_m1(v, 12)
 }
-
 #[inline]
 pub fn div_by_65535(v: u32) -> u16 {
-    let round = 1 << 15;
-    let v = v + round;
-    (((v >> 16) + v) >> 16) as u16
+    div_by_2pn_m1(v, 16)
 }
 
 /// Associate alpha in place
@@ -208,7 +208,6 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
     // So everywhere is just added something beautiful.
     assert!(bit_depth > 0 && bit_depth <= 16);
     let max_colors = (1 << bit_depth) - 1;
-    let recip_max_colors = 1. / max_colors as f32;
     if bit_depth == 10 {
         for chunk in in_place.chunks_exact_mut(4) {
             let a = chunk[3] as u32;
@@ -236,14 +235,10 @@ pub fn premultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
     } else {
         for chunk in in_place.chunks_exact_mut(4) {
             let a = chunk[3] as u32;
-            chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            chunk[1] = (((chunk[1] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            chunk[2] = (((chunk[2] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            chunk[3] = (((max_colors * a) as f32 * recip_max_colors).round() as u32).min(max_colors)
-                as u16;
+            chunk[0] = div_by_2pn_m1(chunk[0] as u32 * a, bit_depth);
+            chunk[1] = div_by_2pn_m1(chunk[1] as u32 * a, bit_depth);
+            chunk[2] = div_by_2pn_m1(chunk[2] as u32 * a, bit_depth);
+            chunk[3] = div_by_2pn_m1(max_colors * a, bit_depth);
         }
     }
 }
@@ -264,7 +259,6 @@ pub fn premultiplied_rgba16(source: &[u16], bit_depth: u32) -> Vec<u16> {
     // So everywhere is just added something beautiful.
     assert!(bit_depth > 0 && bit_depth <= 16);
     let max_colors = (1 << bit_depth) - 1;
-    let recip_max_colors = 1. / max_colors as f32;
     if bit_depth == 10 {
         for (dst, src) in target.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
             let a = src[3] as u32;
@@ -292,14 +286,10 @@ pub fn premultiplied_rgba16(source: &[u16], bit_depth: u32) -> Vec<u16> {
     } else {
         for (dst, src) in target.chunks_exact_mut(4).zip(source.chunks_exact(4)) {
             let a = src[3] as u32;
-            dst[0] = (((src[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            dst[1] = (((src[1] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            dst[2] = (((src[2] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            dst[3] = (((a * max_colors) as f32 * recip_max_colors).round() as u32).min(max_colors)
-                as u16;
+            dst[0] = div_by_2pn_m1(src[0] as u32 * a, bit_depth);
+            dst[1] = div_by_2pn_m1(src[1] as u32 * a, bit_depth);
+            dst[2] = div_by_2pn_m1(src[2] as u32 * a, bit_depth);
+            dst[3] = div_by_2pn_m1(max_colors * a, bit_depth);
         }
     }
     target
@@ -338,13 +328,10 @@ pub fn premultiply_la16(in_place: &mut [u16], bit_depth: u32) {
             chunk[1] = div_by_65535(65535 * a);
         }
     } else {
-        let recip_max_colors = 1. / max_colors as f32;
         for chunk in in_place.chunks_exact_mut(2) {
             let a = chunk[1] as u32;
-            chunk[0] = (((chunk[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            chunk[1] = (((a * max_colors) as f32 * recip_max_colors).round() as u32).min(max_colors)
-                as u16;
+            chunk[0] = div_by_2pn_m1(chunk[0] as u32 * a, bit_depth);
+            chunk[1] = div_by_2pn_m1(max_colors * a, bit_depth);
         }
     }
 }
@@ -384,13 +371,10 @@ pub fn premultiplied_la16(source: &[u16], bit_depth: u32) -> Vec<u16> {
             dst[1] = div_by_65535(65535 * a);
         }
     } else {
-        let recip_max_colors = 1. / max_colors as f32;
         for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
             let a = src[1] as u32;
-            dst[0] = (((src[0] as u32 * a) as f32 * recip_max_colors).round() as u32)
-                .min(max_colors) as u16;
-            dst[1] = (((max_colors * a) as f32 * recip_max_colors).round() as u32).min(max_colors)
-                as u16;
+            dst[0] = div_by_2pn_m1(src[0] as u32 * a, bit_depth);
+            dst[1] = div_by_2pn_m1(max_colors * a, bit_depth);
         }
     }
     target
