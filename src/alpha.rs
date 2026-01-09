@@ -414,9 +414,8 @@ pub fn unpremultiply_la16(in_place: &mut [u16], bit_depth: u32) {
     for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1] as u32;
         if a != 0 {
-            let a_recip = 1. / a as f32;
-            chunk[0] = ((chunk[0] as u32 * max_colors) as f32 * a_recip) as u16;
-            chunk[1] = ((a * max_colors) as f32 * a_recip) as u16;
+            let a_recip = max_colors as f32 / a as f32;
+            chunk[0] = (chunk[0] as f32 * a_recip) as u16;
         }
     }
 }
@@ -443,7 +442,6 @@ pub fn unpremultiply_rgba16(in_place: &mut [u16], bit_depth: u32) {
             chunk[0] = (chunk[0] as f32 * a_recip) as u16;
             chunk[1] = (chunk[1] as f32 * a_recip) as u16;
             chunk[2] = (chunk[2] as f32 * a_recip) as u16;
-            chunk[3] = (a as f32 * a_recip) as u16;
         }
     }
 }
