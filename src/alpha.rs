@@ -169,7 +169,6 @@ pub fn unpremultiply_la8(in_place: &mut [u8]) {
         let a = chunk[1];
         let z = a as u16 * 255;
         chunk[0] = UNPREMULTIPLICATION_TABLE[(z + chunk[0] as u16) as usize];
-        chunk[1] = a;
     }
 }
 
