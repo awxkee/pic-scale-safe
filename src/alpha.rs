@@ -124,7 +124,7 @@ pub fn unpremultiply_rgba8(in_place: &mut [u8]) {
 /// * `in_place`: Slice to where premultiply
 ///
 pub fn premultiply_la8(in_place: &mut [u8]) {
-    // Almost all loops are not auto-vectorised without doing anything dirty.
+    // Almost all loops are not auto-vectorized without doing anything dirty.
     // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1] as u16;
@@ -181,16 +181,19 @@ fn div_by_2pn_m1(v: u32, n: u32) -> u16 {
     let v = v + round;
     (((v >> n) + v) >> n) as u16
 }
+
 #[inline]
-pub fn div_by_1023(v: u32) -> u16 {
+fn div_by_1023(v: u32) -> u16 {
     div_by_2pn_m1(v, 10)
 }
+
 #[inline]
-pub fn div_by_4095(v: u32) -> u16 {
+fn div_by_4095(v: u32) -> u16 {
     div_by_2pn_m1(v, 12)
 }
+
 #[inline]
-pub fn div_by_65535(v: u32) -> u16 {
+fn div_by_65535(v: u32) -> u16 {
     div_by_2pn_m1(v, 16)
 }
 
