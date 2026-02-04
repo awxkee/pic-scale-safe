@@ -34,6 +34,8 @@ use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resi
 use image::imageops::FilterType;
 use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
 use pic_scale_safe::{resize_rgba8, ImageSize, ResamplingFunction};
+use resize::px::{RGB, RGBA};
+use resize::Pixel::{RGB8, RGBA8};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let img = ImageReader::open("../assets/nasa-4928x3279.png")
@@ -88,6 +90,26 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                         .use_alpha(false),
                 )
                 .unwrap();
+        })
+    });
+
+    c.bench_function("Resize: Lanczos 3", |b| {
+        let mut resizer = resize::new(
+            dimensions.0 as usize,
+            dimensions.1 as usize,
+            (dimensions.0 / 4) as usize,
+            (dimensions.1 / 4) as usize,
+            RGBA8,
+            resize::Type::Lanczos3,
+        )
+        .unwrap();
+
+        let src = vec![RGBA::new(0, 0, 0, 0); dimensions.0 as usize * dimensions.1 as usize];
+        // Destination buffer. Must be mutable.
+        let mut dst =
+            vec![RGBA::new(0, 0, 0, 0); (dimensions.0 / 4) as usize * (dimensions.1 / 4) as usize];
+        b.iter(|| {
+            resizer.resize(&src, &mut dst).unwrap();
         })
     });
 

@@ -28,11 +28,9 @@
  */
 mod image_wrapper;
 
-use fast_image_resize::images::Image;
-use fast_image_resize::{CpuExtensions, FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer};
-use image::{imageops, EncodableLayout, GenericImageView, ImageReader};
+use image::{EncodableLayout, GenericImageView, ImageReader};
 use pic_scale_safe::{
-    premultiply_rgba8, resize_rgb8, resize_rgba8, unpremultiply_rgba8, ImageSize,
+    resize_rgba8, ImageSize,
     ResamplingFunction,
 };
 use std::ops::{BitXor, Shr};
@@ -50,11 +48,11 @@ fn main() {
 
     let src_size = ImageSize::new(dimensions.0 as usize, dimensions.1 as usize);
     // let dst_size = ImageSize::new(dimensions.0 as usize / 4, dimensions.1 as usize / 4);
-    let dst_size = ImageSize::new(3240, 2160);
+    let dst_size = ImageSize::new(dimensions.0 as usize / 10, dimensions.1 as usize / 10);
 
     // let start_mul = Instant::now();
     //
-    premultiply_rgba8(&mut working_store);
+    // premultiply_rgba8(&mut working_store);
     //
     // println!("Alpha mul time {:?}", start_mul.elapsed());
 
@@ -64,11 +62,11 @@ fn main() {
         &working_store,
         src_size,
         dst_size,
-        ResamplingFunction::CatmullRom,
+        ResamplingFunction::Lanczos3,
     )
     .unwrap();
 
-    unpremultiply_rgba8(&mut resized);
+    // unpremultiply_rgba8(&mut resized);
 
     println!("Working time {:?}", start.elapsed());
 
