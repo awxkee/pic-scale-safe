@@ -39,11 +39,12 @@ pub(crate) fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
     dst_width: usize,
     dst_height: usize,
 ) {
-    let x_scale = src_width as f32 / dst_width as f32;
-    let y_scale = src_height as f32 / dst_height as f32;
+    const SHIFT: i32 = 32;
 
-    let clip_width = src_width as f32 - 1f32;
-    let clip_height = src_height as f32 - 1f32;
+    let k_x: u64 = ((src_width as u64) << SHIFT) / dst_width as u64;
+    let k_y: u64 = ((src_height as u64) << SHIFT) / dst_height as u64;
+    let k_x_half: u64 = k_x >> 1;
+    let k_y_half: u64 = k_y >> 1;
 
     let dst_stride = dst_width * CHANNELS;
     let src_stride = src_width * CHANNELS;
@@ -59,14 +60,13 @@ pub(crate) fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
     }
 
     iter.enumerate().for_each(|(y, dst_row)| {
-        for (x, dst_chunk) in dst_row.chunks_exact_mut(CHANNELS).enumerate() {
-            let src_x = ((x as f32 + 0.5f32) * x_scale - 0.5f32)
-                .min(clip_width)
-                .max(0f32) as usize;
-            let src_y = ((y as f32 + 0.5f32) * y_scale - 0.5f32)
-                .min(clip_height)
-                .max(0f32) as usize;
-            let src_offset_y = src_y * src_stride;
+        let src_y = ((y as u64 * k_y + k_y_half) >> SHIFT) as usize;
+        let src_offset_y = src_y * src_stride;
+
+        let mut src_x_fixed = k_x_half;
+        for dst_chunk in dst_row.chunks_exact_mut(CHANNELS) {
+            let src_x = (src_x_fixed >> SHIFT) as usize;
+
             let src_px = src_x * CHANNELS;
             let offset = src_offset_y + src_px;
 
@@ -75,6 +75,8 @@ pub(crate) fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
             for (src, dst) in src_slice.iter().zip(dst_chunk.iter_mut()) {
                 *dst = *src;
             }
+
+            src_x_fixed += k_x;
         }
     });
 }
