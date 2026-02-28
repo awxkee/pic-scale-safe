@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use crate::color_group::{
-    load_color_group, load_color_group_with_offset, store_color_group, ColorGroup,
+    load_color_group, store_color_group, ColorGroup,
 };
 use crate::definitions::ROUNDING_CONST;
 use crate::filter_weights::FilterWeights;
@@ -72,60 +72,15 @@ pub(crate) fn convolve_row_handler_fixed_point<
 
         let px = start_x * CHANNELS;
 
-        if bounds_size == 2 {
-            let src_ptr0 = &src[px..(px + 2 * CHANNELS)];
-            let sliced_weights = &weights[0..2];
-            let weight0 = sliced_weights[0].as_();
-            let weight1 = sliced_weights[1].as_();
-            sums += load_color_group!(src_ptr0, CHANNELS, J) * weight0
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight1;
-        } else if bounds_size == 3 {
-            let src_ptr0 = &src[px..(px + 3 * CHANNELS)];
-            let sliced_weights = &weights[0..3];
-            let weight0 = sliced_weights[0].as_();
-            let weight1 = sliced_weights[1].as_();
-            let weight2 = sliced_weights[2].as_();
-            sums += load_color_group!(src_ptr0, CHANNELS, J) * weight0
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight1
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 2, J) * weight2;
-        } else if bounds_size == 4 {
-            let src_ptr0 = &src[px..(px + 4 * CHANNELS)];
-            let sliced_weights = &weights[0..4];
-            let weight0 = sliced_weights[0].as_();
-            let weight1 = sliced_weights[1].as_();
-            let weight2 = sliced_weights[2].as_();
-            let weight3 = sliced_weights[3].as_();
-            sums += load_color_group!(src_ptr0, CHANNELS, J) * weight0
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight1
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 2, J) * weight2
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 3, J) * weight3;
-        } else if bounds_size == 6 {
-            let src_ptr0 = &src[px..(px + 6 * CHANNELS)];
-
-            let sliced_weights = &weights[0..6];
-            let weight0 = sliced_weights[0].as_();
-            let weight1 = sliced_weights[1].as_();
-            let weight2 = sliced_weights[2].as_();
-            let weight3 = sliced_weights[3].as_();
-            let weight4 = sliced_weights[4].as_();
-            let weight5 = sliced_weights[5].as_();
-            sums += load_color_group!(src_ptr0, CHANNELS, J) * weight0
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS, J) * weight1
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 2, J) * weight2
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 3, J) * weight3
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 4, J) * weight4
-                + load_color_group_with_offset!(src_ptr0, CHANNELS, CHANNELS * 5, J) * weight5;
-        } else {
-            let src_ptr0 = &src[px..(px + bounds_size * CHANNELS)];
-            for (&k_weight, src) in weights
-                .iter()
-                .zip(src_ptr0.chunks_exact(CHANNELS))
-                .take(bounds.size)
-            {
-                let weight: J = k_weight.as_();
-                let new_px = load_color_group!(src, CHANNELS, J);
-                sums += new_px * weight;
-            }
+        let src_ptr0 = &src[px..(px + bounds_size * CHANNELS)];
+        for (&k_weight, src) in weights
+            .iter()
+            .zip(src_ptr0.chunks_exact(CHANNELS))
+            .take(bounds.size)
+        {
+            let weight: J = k_weight.as_();
+            let new_px = load_color_group!(src, CHANNELS, J);
+            sums += new_px * weight;
         }
 
         let narrowed = sums.saturate_narrow(bit_depth);

@@ -32,6 +32,7 @@ fn div_by_255(v: u16) -> u8 {
     ((((v + 0x80) >> 8) + v + 0x80) >> 8).min(255) as u8
 }
 
+#[allow(clippy::manual_checked_ops)]
 const fn make_unpremultiplication_table() -> [u8; 65536] {
     let mut alpha = 0usize;
     let mut buf = [0u8; 65536];
