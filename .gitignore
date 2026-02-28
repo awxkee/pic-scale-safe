@@ -3,3 +3,4 @@
 converted.*
 app/target
 app/*.png
+Cargo.lock
