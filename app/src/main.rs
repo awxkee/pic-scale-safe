@@ -29,10 +29,7 @@
 mod image_wrapper;
 
 use image::{EncodableLayout, GenericImageView, ImageReader};
-use pic_scale_safe::{
-    resize_rgba8, ImageSize,
-    ResamplingFunction,
-};
+use pic_scale_safe::{resize_rgba8, ImageSize, ResamplingFunction};
 use std::ops::{BitXor, Shr};
 use std::time::Instant;
 
