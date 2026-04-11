@@ -34,8 +34,8 @@ use fast_image_resize::{CpuExtensions, PixelType, ResizeAlg, ResizeOptions, Resi
 use image::imageops::FilterType;
 use image::{DynamicImage, EncodableLayout, GenericImageView, ImageReader};
 use pic_scale_safe::{resize_rgba8, ImageSize, ResamplingFunction};
-use resize::px::{RGB, RGBA};
-use resize::Pixel::{RGB8, RGBA8};
+use resize::px::RGBA;
+use resize::Pixel::RGBA8;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let img = ImageReader::open("../assets/nasa-4928x3279.png")

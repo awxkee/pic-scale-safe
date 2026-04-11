@@ -26,9 +26,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-use crate::color_group::{
-    load_color_group, store_color_group, ColorGroup,
-};
+use crate::color_group::{load_color_group, store_color_group, ColorGroup};
 use crate::definitions::ROUNDING_CONST;
 use crate::filter_weights::FilterWeights;
 use crate::saturate_narrow::SaturateNarrow;
@@ -73,10 +71,9 @@ pub(crate) fn convolve_row_handler_fixed_point<
         let px = start_x * CHANNELS;
 
         let src_ptr0 = &src[px..(px + bounds_size * CHANNELS)];
-        for (&k_weight, src) in weights
+        for (&k_weight, src) in weights[..bounds.size]
             .iter()
             .zip(src_ptr0.chunks_exact(CHANNELS))
-            .take(bounds.size)
         {
             let weight: J = k_weight.as_();
             let new_px = load_color_group!(src, CHANNELS, J);
@@ -88,7 +85,7 @@ pub(crate) fn convolve_row_handler_fixed_point<
     }
 }
 
-#[inline(always)]
+#[inline(never)]
 pub(crate) fn convolve_row_handler_fixed_point_4<
     T: Copy + 'static + AsPrimitive<J> + Default,
     J: Copy
@@ -146,13 +143,12 @@ pub(crate) fn convolve_row_handler_fixed_point_4<
         let src_ptr2 = &src[(px + src_stride * 2)..(px + src_stride * 2 + bounds_size * CHANNELS)];
         let src_ptr3 = &src[(px + src_stride * 3)..(px + src_stride * 3 + bounds_size * CHANNELS)];
 
-        for ((((&k_weight, src0), src1), src2), src3) in weights
+        for ((((&k_weight, src0), src1), src2), src3) in weights[..bounds.size]
             .iter()
             .zip(src_ptr0.chunks_exact(CHANNELS))
             .zip(src_ptr1.chunks_exact(CHANNELS))
             .zip(src_ptr2.chunks_exact(CHANNELS))
             .zip(src_ptr3.chunks_exact(CHANNELS))
-            .take(bounds.size)
         {
             let weight: J = k_weight.as_();
 

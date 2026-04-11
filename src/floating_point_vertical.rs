@@ -34,7 +34,6 @@ use crate::mixed_storage::MixedStorage;
 use num_traits::{AsPrimitive, Float, MulAdd};
 use std::ops::{Add, Mul};
 
-#[inline(always)]
 /// # Generics
 /// `T` - template buffer type
 /// `J` - accumulator type
@@ -71,7 +70,7 @@ pub(crate) fn convolve_column_handler_floating_point_4<
 
     let bounds_start = bounds.start;
 
-    for (j, &k_weight) in filter.iter().take(bounds.size).enumerate() {
+    for (j, &k_weight) in filter[..bounds.size].iter().enumerate() {
         let py = bounds_start + j;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
@@ -111,7 +110,6 @@ pub(crate) fn convolve_column_handler_floating_point_4<
     );
 }
 
-#[inline(always)]
 /// # Generics
 /// `T` - template buffer type
 /// `J` - accumulator type
@@ -146,7 +144,7 @@ pub(crate) fn convolve_column_handler_floating_point<
     let bounds_size = bounds.size;
     let bounds_start = bounds.start;
 
-    for (j, &k_weight) in filter.iter().take(bounds_size).enumerate() {
+    for (j, &k_weight) in filter[..bounds_size].iter().enumerate() {
         let py = bounds_start + j;
         let weight = k_weight.as_();
         let offset = src_stride * py + v_start_px;
@@ -194,7 +192,7 @@ pub(crate) fn column_handler_floating_point<
 
     let total_width = dst.len();
 
-    while cx + 16 < total_width {
+    while cx + 16 <= total_width {
         convolve_column_handler_floating_point_4::<T, J, F, 4>(
             src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
@@ -202,7 +200,7 @@ pub(crate) fn column_handler_floating_point<
         cx += 16;
     }
 
-    while cx + 4 < total_width {
+    while cx + 4 <= total_width {
         convolve_column_handler_floating_point::<T, J, F, 4>(
             src, src_stride, dst, weight, bounds, bit_depth, cx,
         );
