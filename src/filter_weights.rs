@@ -26,8 +26,6 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-use num_traits::{AsPrimitive, Float};
-
 #[derive(Debug, Clone)]
 pub(crate) struct FilterWeights<T> {
     pub weights: Vec<T>,
@@ -70,12 +68,56 @@ impl<T> FilterWeights<T> {
     }
 }
 
-impl<F> FilterWeights<F>
-where
-    F: Float + 'static + AsPrimitive<i16>,
-    f64: AsPrimitive<F>,
-    i32: AsPrimitive<F>,
-{
+fn quantize_kernel(
+    weights: &[f32],
+    taps: usize,
+    precision_scale: f64,
+    lower_bound: f64,
+    upper_bound: f64,
+    scratch: &mut [f64],
+    order: &mut Vec<usize>,
+) {
+    let mut sum = 0f64;
+    for (i, (&weight, dst)) in weights.iter().zip(scratch.iter_mut()).enumerate() {
+        let q = (weight as f64 * precision_scale)
+            .round()
+            .min(upper_bound)
+            .max(lower_bound);
+        *dst = q;
+        if i < taps {
+            sum += q;
+        }
+    }
+
+    let mut residual = precision_scale - sum;
+    if residual == 0. || taps == 0 {
+        return;
+    }
+
+    order.clear();
+    order.extend(0..taps);
+    order.sort_unstable_by(|&a, &b| {
+        scratch[b]
+            .abs()
+            .partial_cmp(&scratch[a].abs())
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    for &i in order.iter() {
+        let delta = if residual > 0. {
+            residual.min(upper_bound - scratch[i])
+        } else {
+            residual.max(lower_bound - scratch[i])
+        };
+        scratch[i] += delta;
+        residual -= delta;
+        if residual == 0. {
+            break;
+        }
+    }
+}
+
+impl FilterWeights<f32> {
     pub(crate) fn numerical_approximation_i16<const PRECISION: i32>(
         &self,
         alignment: usize,
@@ -85,17 +127,30 @@ where
         } else {
             self.kernel_size
         };
-        let precision_scale: F = (1 << PRECISION).as_();
+        let precision_scale: f64 = (1i64 << PRECISION) as f64;
 
         let mut output_kernel = vec![0i16; self.distinct_elements * align];
 
-        for (chunk, kernel_chunk) in self
+        let mut scratch = vec![0f64; self.kernel_size];
+        let mut order: Vec<usize> = Vec::with_capacity(self.kernel_size);
+
+        for ((chunk, kernel_chunk), bounds) in self
             .weights
             .chunks_exact(self.kernel_size)
             .zip(output_kernel.chunks_exact_mut(align))
+            .zip(self.bounds.iter())
         {
-            for (&weight, kernel) in chunk.iter().zip(kernel_chunk) {
-                *kernel = (weight * precision_scale).round().as_();
+            quantize_kernel(
+                chunk,
+                bounds.size.min(self.kernel_size),
+                precision_scale,
+                i16::MIN as f64,
+                i16::MAX as f64,
+                &mut scratch,
+                &mut order,
+            );
+            for (kernel, &value) in kernel_chunk.iter_mut().zip(scratch.iter()) {
+                *kernel = value as i16;
             }
         }
 
