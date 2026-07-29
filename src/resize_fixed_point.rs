@@ -27,7 +27,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 use crate::compute_weights::generate_weights;
-use crate::fixed_point_dispatch::{convolve_column_fixed_point, convolve_row_fixed_point};
+use crate::fixed_point_dispatch::{
+    convolve_column_fixed_point, convolve_row_fixed_point, convolve_trampoline_fixed_point,
+};
 use crate::handler_provider::{ColumnHandlerFixedPoint, RowHandlerFixedPoint};
 use crate::image_size::ImageSize;
 use crate::resize_nearest::resize_nearest;
@@ -138,6 +140,36 @@ where
         );
 
         return Ok(store);
+    }
+
+    // Both axes are resampled, so the vertical result is only ever read once by the horizontal
+    // pass. Keep it in a 4 rows local scratch instead of a full intermediate image.
+    if source_size.height != destination_size.height && source_size.width != destination_size.width
+    {
+        let vertical_filters = generate_weights::<f32>(
+            resampling_function,
+            source_size.height,
+            destination_size.height,
+        );
+        let horizontal_filters = generate_weights::<f32>(
+            resampling_function,
+            source_size.width,
+            destination_size.width,
+        );
+
+        let mut destination = vec![T::default(); dst_stride * destination_size.height];
+
+        convolve_trampoline_fixed_point::<T, J, CHANNELS>(
+            src,
+            source_size,
+            vertical_filters,
+            horizontal_filters,
+            &mut destination,
+            destination_size,
+            bit_depth,
+        );
+
+        return Ok(destination);
     }
 
     let mut working_slice_size = source_size;

@@ -31,12 +31,166 @@ use crate::filter_weights::FilterWeights;
 use crate::handler_provider::{ColumnHandlerFixedPoint, RowHandlerFixedPoint};
 use crate::image_size::ImageSize;
 use crate::saturate_narrow::SaturateNarrow;
+#[cfg(feature = "rayon")]
+use crate::scratch_pool::for_each_chunk_with_scratch;
 use num_traits::AsPrimitive;
 #[cfg(feature = "rayon")]
 use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 #[cfg(feature = "rayon")]
 use rayon::prelude::{ParallelSlice, ParallelSliceMut};
 use std::ops::{AddAssign, Mul};
+
+#[inline]
+fn vertical_pass_into_scratch<T, J>(
+    image_store: &[T],
+    src_stride: usize,
+    scratch: &mut [T],
+    weights: &FilterWeights<i16>,
+    start_row: usize,
+    bit_depth: u32,
+) where
+    T: Copy + 'static + AsPrimitive<J> + Default + ColumnHandlerFixedPoint<T, J>,
+    J: Copy + 'static + AsPrimitive<T> + Mul<Output = J> + AddAssign + SaturateNarrow<T> + Default,
+    i32: AsPrimitive<J>,
+    i16: AsPrimitive<J>,
+{
+    for (i, scratch_row) in scratch.chunks_exact_mut(src_stride).enumerate() {
+        let row = start_row + i;
+        let offset = row * weights.aligned_size;
+        T::handle_column(
+            &weights.bounds[row],
+            image_store,
+            scratch_row,
+            src_stride,
+            &weights.weights[offset..(offset + weights.aligned_size)],
+            bit_depth,
+        );
+    }
+}
+
+/// Convolves both axes in a single sweep over the destination.
+///
+/// Rather than materializing a full `source width * destination height` intermediate image,
+/// the vertical pass fills a local scratch of at most 4 rows and the horizontal pass consumes
+/// it immediately, so the working set stays in cache and the allocation stops scaling with
+/// image height.
+pub(crate) fn convolve_trampoline_fixed_point<T, J, const CHANNELS: usize>(
+    image_store: &[T],
+    image_size: ImageSize,
+    vertical_weights: FilterWeights<f32>,
+    horizontal_weights: FilterWeights<f32>,
+    destination: &mut [T],
+    destination_size: ImageSize,
+    bit_depth: u32,
+) where
+    T: Copy
+        + 'static
+        + AsPrimitive<J>
+        + Default
+        + ColumnHandlerFixedPoint<T, J>
+        + RowHandlerFixedPoint<T, J>
+        + Send
+        + Sync,
+    J: Copy + 'static + AsPrimitive<T> + Mul<Output = J> + AddAssign + SaturateNarrow<T> + Default,
+    i32: AsPrimitive<J>,
+    i16: AsPrimitive<J>,
+{
+    assert_eq!(
+        image_store.len(),
+        image_size.width * image_size.height * CHANNELS,
+        "Source image slice must match its dimensions"
+    );
+    assert_eq!(
+        destination.len(),
+        destination_size.width * destination_size.height * CHANNELS,
+        "Source image slice must match its dimensions"
+    );
+
+    let (src_stride, k_overflowed) = image_size.width.overflowing_mul(CHANNELS);
+    assert!(!k_overflowed, "Stride must be always less than usize::MAX");
+
+    let (dst_stride, k_overflowed) = destination_size.width.overflowing_mul(CHANNELS);
+    assert!(!k_overflowed, "Stride must be always less than usize::MAX");
+
+    let v_weights = vertical_weights.numerical_approximation_i16::<PRECISION>(0);
+    let h_weights = horizontal_weights.numerical_approximation_i16::<PRECISION>(0);
+
+    let scratch_len = src_stride * 4.min(destination_size.height);
+
+    let quads = destination_size.height / 4;
+    let (dst_quads, dst_rem) = destination.split_at_mut(quads * 4 * dst_stride);
+
+    #[cfg(not(feature = "rayon"))]
+    {
+        let mut scratch = vec![T::default(); scratch_len];
+
+        for (quad, dst) in dst_quads.chunks_exact_mut(dst_stride * 4).enumerate() {
+            vertical_pass_into_scratch::<T, J>(
+                image_store,
+                src_stride,
+                &mut scratch,
+                &v_weights,
+                quad * 4,
+                bit_depth,
+            );
+            T::handle_row_4::<CHANNELS>(
+                &scratch, src_stride, dst, dst_stride, &h_weights, bit_depth,
+            );
+        }
+
+        let scratch_row = &mut scratch[..src_stride];
+
+        for (y, dst) in dst_rem.chunks_exact_mut(dst_stride).enumerate() {
+            vertical_pass_into_scratch::<T, J>(
+                image_store,
+                src_stride,
+                scratch_row,
+                &v_weights,
+                quads * 4 + y,
+                bit_depth,
+            );
+            T::handle_row::<CHANNELS>(scratch_row, dst, &h_weights, bit_depth);
+        }
+    }
+    #[cfg(feature = "rayon")]
+    {
+        for_each_chunk_with_scratch(
+            dst_quads,
+            dst_stride * 4,
+            scratch_len,
+            |quad, dst, scratch| {
+                vertical_pass_into_scratch::<T, J>(
+                    image_store,
+                    src_stride,
+                    scratch,
+                    &v_weights,
+                    quad * 4,
+                    bit_depth,
+                );
+                T::handle_row_4::<CHANNELS>(
+                    scratch, src_stride, dst, dst_stride, &h_weights, bit_depth,
+                );
+            },
+        );
+
+        // At most three rows are left over, there is nothing to gain from spreading them out.
+        if !dst_rem.is_empty() {
+            let mut scratch = vec![T::default(); src_stride];
+
+            for (y, dst) in dst_rem.chunks_exact_mut(dst_stride).enumerate() {
+                vertical_pass_into_scratch::<T, J>(
+                    image_store,
+                    src_stride,
+                    &mut scratch,
+                    &v_weights,
+                    quads * 4 + y,
+                    bit_depth,
+                );
+                T::handle_row::<CHANNELS>(&scratch, dst, &h_weights, bit_depth);
+            }
+        }
+    }
+}
 
 pub(crate) fn convolve_row_fixed_point<T, J, const CHANNELS: usize>(
     image_store: &[T],

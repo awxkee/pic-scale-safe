@@ -26,46 +26,46 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+use std::sync::Mutex;
 
-#![forbid(unsafe_code)]
-#![allow(clippy::manual_clamp, clippy::chunks_exact_to_as_chunks)]
-#![deny(dead_code, unreachable_pub)]
+pub(crate) fn for_each_chunk_with_scratch<T, F>(
+    dst: &mut [T],
+    chunk: usize,
+    scratch_len: usize,
+    work: F,
+) where
+    T: Default + Clone + Send,
+    F: Fn(usize, &mut [T], &mut [T]) + Send + Sync,
+{
+    assert_ne!(chunk, 0, "Chunk size must never be zero");
 
-mod alpha;
-mod alpha_check;
-mod color_group;
-mod compute_weights;
-mod definitions;
-mod filter_weights;
-mod fixed_point_dispatch;
-mod fixed_point_horizontal;
-mod fixed_point_vertical;
-mod floating_point_dispatch;
-mod floating_point_horizontal;
-mod floating_point_vertical;
-mod handler_provider;
-mod image_size;
-mod math;
-mod mixed_storage;
-mod mlaf;
-mod resize_fixed_point;
-mod resize_floating_point;
-mod resize_nearest;
-mod resizer;
-mod sampler;
-mod saturate_narrow;
-#[cfg(feature = "rayon")]
-mod scratch_pool;
-mod trc;
-mod trc_handler;
+    let chunks = dst.len() / chunk;
+    if chunks == 0 {
+        return;
+    }
 
-pub use alpha::*;
-pub use alpha_check::{
-    has_non_constant_alpha_la16, has_non_constant_alpha_la8, has_non_constant_alpha_luma_alpha_f32,
-    has_non_constant_alpha_rgba16, has_non_constant_alpha_rgba8, has_non_constant_alpha_rgba_f32,
-};
-pub use image_size::ImageSize;
-pub use resizer::*;
-pub use sampler::ResamplingFunction;
-pub use trc::*;
-pub use trc_handler::*;
+    let workers = rayon::current_num_threads().max(1).min(chunks);
+    let queue = Mutex::new(dst.chunks_exact_mut(chunk).enumerate());
+
+    rayon::scope(|scope| {
+        for _ in 0..workers {
+            scope.spawn(|_| {
+                let mut scratch = vec![T::default(); scratch_len];
+
+                loop {
+                    // Bind the item first so the guard is released before `work` runs,
+                    // otherwise the lock would serialize the workers.
+                    let item = queue
+                        .lock()
+                        .expect("Scratch queue has been poisoned")
+                        .next();
+
+                    match item {
+                        Some((index, dst_chunk)) => work(index, dst_chunk, &mut scratch),
+                        None => break,
+                    }
+                }
+            });
+        }
+    });
+}
