@@ -467,7 +467,7 @@ pub fn premultiply_luma_alpha_f32(in_place: &mut [f32]) {
     for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1];
         chunk[0] *= a;
-        chunk[2] = a;
+        chunk[1] = a;
     }
 }
 
@@ -485,7 +485,7 @@ pub fn premultiplied_luma_alpha_f32(source: &[f32]) -> Vec<f32> {
     // Almost all loops are not auto-vectorised without doing anything dirty.
     // So everywhere is just added something beautiful.
     for (dst, src) in target.chunks_exact_mut(2).zip(source.chunks_exact(2)) {
-        let a = src[2];
+        let a = src[1];
         dst[0] = src[0] * a;
         dst[1] = a;
     }
