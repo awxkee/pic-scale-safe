@@ -38,10 +38,11 @@ pub(crate) fn bartlett<V: Copy + Sub<Output = V> + Mul<Output = V> + 'static + P
 where
     f32: AsPrimitive<V>,
 {
-    if x >= 0f32.as_() && x <= 1f32.as_() {
-        return 2f32.as_() * x;
+    let x = if x < 0f32.as_() { 0f32.as_() - x } else { x };
+    if x > 2f32.as_() {
+        return 0f32.as_();
     }
-    2f32.as_() - 2f32.as_() * x
+    1f32.as_() - 0.5f32.as_() * x
 }
 
 #[inline(always)]
@@ -58,6 +59,29 @@ where
         return 0f32.as_();
     }
     let l = 2.0f32.as_();
-    let fac = (x / (l - 1.0f32.as_()) - 0.5f32.as_()).abs();
-    0.62f32.as_() - 0.4832.as_() * fac + 0.38f32.as_() * (2f32.as_() * V::const_pi() * fac).cos()
+    let fac = x / (l + l);
+    0.62f32.as_() - 0.48f32.as_() * fac + 0.38f32.as_() * (2f32.as_() * V::const_pi() * fac).cos()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bartlett_is_triangle_over_support() {
+        assert_eq!(bartlett(0f32), 1f32);
+        assert_eq!(bartlett(1f32), 0.5f32);
+        assert_eq!(bartlett(-1f32), 0.5f32);
+        assert_eq!(bartlett(2f32), 0f32);
+        assert_eq!(bartlett(2.5f32), 0f32);
+    }
+
+    #[test]
+    fn bartlett_hann_peaks_at_center_and_decays_to_zero() {
+        assert!((bartlett_hann(0f32) - 1f32).abs() < 1e-6);
+        assert!(bartlett_hann(2f32).abs() < 1e-6);
+        assert!(bartlett_hann(-2f32).abs() < 1e-6);
+        assert_eq!(bartlett_hann(2.5f32), 0f32);
+        assert!((bartlett_hann(1f32) - bartlett_hann(-1f32)).abs() < 1e-6);
+    }
 }

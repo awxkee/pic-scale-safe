@@ -45,7 +45,7 @@ where
     f64: AsPrimitive<V>,
 {
     let scale_a: V = 1f32.as_() / a;
-    if x == 0f32.as_() || x > 16.247661874700962f32.as_() {
+    if x > 16.247661874700962f32.as_() {
         return 0f32.as_();
     }
     if x.abs() < a {

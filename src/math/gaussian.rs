@@ -42,7 +42,22 @@ where
 {
     let sigma: V = 0.35f32.as_();
     let pi = V::const_pi();
-    let mut den = 2f32.as_() * sigma * sigma;
-    den *= den;
-    (1f32.as_() / ((2f32.as_() * pi).sqrt() * sigma)) * (-x / den).exp()
+    let den = 2f32.as_() * sigma * sigma;
+    (1f32.as_() / ((2f32.as_() * pi).sqrt() * sigma)) * (-(x * x) / den).exp()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gaussian_matches_textbook_formula() {
+        let sigma = 0.35f64;
+        for &x in &[0f64, 0.25, 0.5, 1.0, 2.0] {
+            let expected = (1.0 / ((2.0 * std::f64::consts::PI).sqrt() * sigma))
+                * (-(x * x) / (2.0 * sigma * sigma)).exp();
+            assert!((gaussian(x) - expected).abs() < 1e-6, "x = {x}");
+        }
+        assert!((gaussian(1f64) - gaussian(-1f64)).abs() < 1e-12);
+    }
 }

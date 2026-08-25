@@ -106,13 +106,6 @@ where
         "Images with more than 4 channels is not supported"
     );
     assert_ne!(CHANNELS, 0, "Invalid count of channels");
-    if src.len() != source_size.width * CHANNELS * source_size.height {
-        return Err(format!(
-            "Source slice size must be width * channels * height ({}) but got {}",
-            source_size.width * CHANNELS * source_size.height,
-            src.len(),
-        ));
-    }
     let (src_stride, is_stride_overflowed) = source_size.width.overflowing_mul(CHANNELS);
     if is_stride_overflowed {
         return Err("Stride must never exceed usize::MAX".parse().unwrap());
@@ -121,13 +114,20 @@ where
     if is_stride_overflowed {
         return Err("Stride must never exceed usize::MAX".parse().unwrap());
     }
-    let (_, is_size_overflowing) = src_stride.overflowing_mul(source_size.height);
+    let (src_slice_len, is_size_overflowing) = src_stride.overflowing_mul(source_size.height);
     if is_size_overflowing {
         return Err("Image size must never exceed usize::MAX".parse().unwrap());
     }
     let (_, is_size_overflowing) = dst_stride.overflowing_mul(destination_size.height);
     if is_size_overflowing {
         return Err("Image size must never exceed usize::MAX".parse().unwrap());
+    }
+    if src.len() != src_slice_len {
+        return Err(format!(
+            "Source slice size must be width * channels * height ({}) but got {}",
+            src_slice_len,
+            src.len(),
+        ));
     }
     if source_size.width == 0 || source_size.height == 0 {
         return Err("Image size must not be zero".to_string());

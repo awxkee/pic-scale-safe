@@ -320,7 +320,7 @@ fn qone(x: f64) -> f64 {
 #[inline]
 pub(crate) fn jinc_f64(x: f64) -> f64 {
     if x == 0f64 {
-        return 0f64;
+        return 0.5f64;
     }
     j1(x) / x
 }
@@ -328,7 +328,7 @@ pub(crate) fn jinc_f64(x: f64) -> f64 {
 #[inline]
 pub(crate) fn jinc_f32(x: f32) -> f32 {
     if x == 0f32 {
-        return 0f32;
+        return 0.5f32;
     }
     (j1(x as f64) / x as f64) as f32
 }
@@ -346,5 +346,19 @@ impl Jinc<f64> for f64 {
 impl Jinc<f32> for f32 {
     fn jinc() -> fn(f32) -> f32 {
         jinc_f32
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn jinc_zero_limit_is_half() {
+        assert_eq!(jinc_f64(0f64), 0.5f64);
+        assert_eq!(jinc_f32(0f32), 0.5f32);
+        // continuity: values near zero approach the limit
+        assert!((jinc_f64(1e-6) - 0.5).abs() < 1e-6);
+        assert!((jinc_f32(1e-4f32) - 0.5f32).abs() < 1e-4);
     }
 }

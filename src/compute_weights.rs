@@ -156,6 +156,12 @@ where
                 {
                     *dst = *src * recpeq;
                 }
+            } else if size > 0 {
+                for dst in weights.iter_mut().skip(filter_position).take(size) {
+                    *dst = 0f32.as_();
+                }
+                let center_tap: usize = (center - start.as_()).round().max(0f32.as_()).as_();
+                weights[filter_position + center_tap.min(size - 1)] = 1f32.as_();
             }
 
             filter_position += kernel_size;
@@ -237,5 +243,39 @@ where
             filter_radius.as_(),
             bounds,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_window_has_weights_summing_to_one() {
+        let functions = [
+            ResamplingFunction::Bilinear,
+            ResamplingFunction::Lanczos3,
+            ResamplingFunction::Gaussian,
+            ResamplingFunction::Bartlett,
+            ResamplingFunction::BartlettHann,
+            ResamplingFunction::Lanczos3Jinc,
+        ];
+        for function in functions {
+            for (in_size, out_size) in [(100usize, 37usize), (37, 100), (256, 256), (5, 1)] {
+                let filter = generate_weights::<f64>(function, in_size, out_size);
+                for (i, chunk) in filter
+                    .weights
+                    .chunks_exact(filter.kernel_size)
+                    .enumerate()
+                    .take(out_size)
+                {
+                    let sum: f64 = chunk.iter().sum();
+                    assert!(
+                        (sum - 1.0).abs() < 1e-4,
+                        "{function:?} {in_size}->{out_size}: window {i} sums to {sum}"
+                    );
+                }
+            }
+        }
     }
 }
