@@ -106,7 +106,7 @@ pub(crate) fn convolve_trampoline_floating_point<T, J, F, const CHANNELS: usize>
     assert_eq!(
         destination.len(),
         destination_size.width * destination_size.height * CHANNELS,
-        "Source image slice must match its dimensions"
+        "Destination image slice must match its dimensions"
     );
 
     let (src_stride, k_overflowed) = image_size.width.overflowing_mul(CHANNELS);
