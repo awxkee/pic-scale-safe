@@ -4,6 +4,7 @@ workspace = { members = ["app"] }
 name = "pic-scale-safe"
 version = "0.1.12"
 edition = "2021"
+rust-version = "1.91"
 description = "Fast and safe performance image scaling"
 readme = "README.md"
 keywords = ["scale", "resize", "image-resize"]

@@ -64,7 +64,7 @@ pub use alpha_check::{
     has_non_constant_alpha_la16, has_non_constant_alpha_la8, has_non_constant_alpha_luma_alpha_f32,
     has_non_constant_alpha_rgba16, has_non_constant_alpha_rgba8, has_non_constant_alpha_rgba_f32,
 };
-pub use image_size::ImageSize;
+pub use image_size::{CropRect, FractIndex, ImageSize};
 pub use resizer::*;
 pub use sampler::ResamplingFunction;
 pub use trc::*;
