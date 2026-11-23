@@ -1,4 +1,6 @@
-workspace = { members = ["app"] }
+[workspace]
+members = ["app"]
+exclude = ["fuzz"]
 
 [package]
 name = "pic-scale-safe"
