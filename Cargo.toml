@@ -1,4 +1,4 @@
-workspace = { members = ["app"] }
+workspace = { members = ["app"], exclude = ["demo"] }
 
 [package]
 name = "pic-scale-safe"
