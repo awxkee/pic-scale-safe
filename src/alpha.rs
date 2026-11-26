@@ -40,10 +40,10 @@ const fn make_unpremultiplication_table() -> [u8; 65536] {
         let mut pixel = 0usize;
         while pixel < 256 {
             if alpha == 0 {
-                buf[alpha * 255 + pixel] = 0;
+                buf[alpha * 256 + pixel] = 0;
             } else {
                 let value = (pixel * 255 + alpha / 2) / alpha;
-                buf[alpha * 255 + pixel] = if value > 255 { 255 } else { value as u8 };
+                buf[alpha * 256 + pixel] = if value > 255 { 255 } else { value as u8 };
             }
             pixel += 1;
         }
@@ -109,7 +109,7 @@ pub fn premultiplied_rgba8(source: &[u8]) -> Vec<u8> {
 pub fn unpremultiply_rgba8(in_place: &mut [u8]) {
     for chunk in in_place.chunks_exact_mut(4) {
         let a = chunk[3];
-        let z = a as u16 * 255;
+        let z = a as u16 * 256;
         chunk[0] = UNPREMULTIPLICATION_TABLE[(z + chunk[0] as u16) as usize];
         chunk[1] = UNPREMULTIPLICATION_TABLE[(z + chunk[1] as u16) as usize];
         chunk[2] = UNPREMULTIPLICATION_TABLE[(z + chunk[2] as u16) as usize];
@@ -168,7 +168,7 @@ pub fn unpremultiply_la8(in_place: &mut [u8]) {
     // So everywhere is just added something beautiful.
     for chunk in in_place.chunks_exact_mut(2) {
         let a = chunk[1];
-        let z = a as u16 * 255;
+        let z = a as u16 * 256;
         chunk[0] = UNPREMULTIPLICATION_TABLE[(z + chunk[0] as u16) as usize];
     }
 }
