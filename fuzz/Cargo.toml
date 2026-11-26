@@ -1,0 +1,23 @@
+[package]
+name = "fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+arbitrary = {version = "1.5.0", features = ["derive"] }
+libfuzzer-sys = "0.4"
+tiff = { version = "0.11.3", default-features= false,features= ["deflate"]}
+
+[dependencies.pic-scale-safe]
+path = ".."
+
+[[bin]]
+name = "render_scale_render"
+path = "fuzz_targets/render_scale_render.rs"
+test = false
+doc = false
+bench = false

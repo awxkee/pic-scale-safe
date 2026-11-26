@@ -28,7 +28,7 @@
  */
 use crate::resize_fixed_point::resize_fixed_point;
 use crate::resize_floating_point::resize_floating_point;
-use crate::{ImageSize, ResamplingFunction};
+use crate::{CropRect, ImageSize, ResamplingFunction};
 
 /// Performs resizing on RGBA 8 bit-depth image
 ///
@@ -64,9 +64,42 @@ pub fn resize_rgba8(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u8>, String> {
+    cropped_resize_rgba8(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on RGBA 8 bit-depth image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_rgba8] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_rgba8(
+    source: &[u8],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u8>, String> {
     resize_fixed_point::<u8, i32, 4>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,
@@ -103,9 +136,42 @@ pub fn resize_rgb8(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u8>, String> {
+    cropped_resize_rgb8(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on RGB 8 bit-depth image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_rgb8] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_rgb8(
+    source: &[u8],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u8>, String> {
     resize_fixed_point::<u8, i32, 3>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,
@@ -142,9 +208,42 @@ pub fn resize_plane8(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u8>, String> {
+    cropped_resize_plane8(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on planar 8 bit-depth image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_plane8] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_plane8(
+    source: &[u8],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u8>, String> {
     resize_fixed_point::<u8, i32, 1>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,
@@ -181,9 +280,42 @@ pub fn resize_plane8_with_alpha(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u8>, String> {
+    cropped_resize_plane8_with_alpha(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on planar image with alpha 8 bit-depth image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_plane8_with_alpha] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_plane8_with_alpha(
+    source: &[u8],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u8>, String> {
     resize_fixed_point::<u8, i32, 2>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,
@@ -227,6 +359,40 @@ pub fn resize_rgba16(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
+    cropped_resize_rgba16(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        bit_depth,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on RGBA 8-16 bit-depth image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_rgba16] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_rgba16(
+    source: &[u16],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    bit_depth: u32,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u16>, String> {
     if bit_depth > 16 || bit_depth == 0 {
         return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
@@ -234,6 +400,7 @@ pub fn resize_rgba16(
         resize_fixed_point::<u16, i32, 4>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -242,6 +409,7 @@ pub fn resize_rgba16(
         resize_floating_point::<u16, f32, f32, 4>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -282,6 +450,40 @@ pub fn resize_rgb16(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
+    cropped_resize_rgb16(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        bit_depth,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on RGB 8-16 bit-depth image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_rgb16] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_rgb16(
+    source: &[u16],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    bit_depth: u32,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u16>, String> {
     if bit_depth > 16 || bit_depth == 0 {
         return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
@@ -289,6 +491,7 @@ pub fn resize_rgb16(
         resize_fixed_point::<u16, i32, 3>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -297,6 +500,7 @@ pub fn resize_rgb16(
         resize_floating_point::<u16, f32, f32, 3>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -337,6 +541,40 @@ pub fn resize_plane16(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
+    cropped_resize_plane16(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        bit_depth,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on planar 8-16 bit-depth image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_plane16] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_plane16(
+    source: &[u16],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    bit_depth: u32,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u16>, String> {
     if bit_depth > 16 || bit_depth == 0 {
         return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
@@ -344,6 +582,7 @@ pub fn resize_plane16(
         resize_fixed_point::<u16, i32, 1>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -352,6 +591,7 @@ pub fn resize_plane16(
         resize_floating_point::<u16, f32, f32, 1>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -392,6 +632,40 @@ pub fn resize_plane16_with_alpha(
     bit_depth: u32,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<u16>, String> {
+    cropped_resize_plane16_with_alpha(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        bit_depth,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on planar 8-16 bit-depth image with alpha
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_plane16_with_alpha] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_plane16_with_alpha(
+    source: &[u16],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    bit_depth: u32,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<u16>, String> {
     if bit_depth > 16 || bit_depth == 0 {
         return Err("Bit depth cannot be greater than 16 and not a zero".to_string());
     }
@@ -399,6 +673,7 @@ pub fn resize_plane16_with_alpha(
         resize_fixed_point::<u16, i32, 2>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -407,6 +682,7 @@ pub fn resize_plane16_with_alpha(
         resize_floating_point::<u16, f32, f32, 2>(
             source,
             source_size,
+            source_rect,
             destination_size,
             bit_depth,
             resampling_function,
@@ -445,9 +721,42 @@ pub fn resize_rgba_f32(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<f32>, String> {
+    cropped_resize_rgba_f32(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on RGBA f32 image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_rgba_f32] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_rgba_f32(
+    source: &[f32],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<f32>, String> {
     resize_floating_point::<f32, f32, f32, 4>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,
@@ -481,16 +790,49 @@ pub fn resize_rgb_f32(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<f32>, String> {
+    cropped_resize_rgb_f32(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on RGB f32 image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_rgb_f32] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_rgb_f32(
+    source: &[f32],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<f32>, String> {
     resize_floating_point::<f32, f32, f32, 3>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,
     )
 }
 
-/// Performs resizing on RGB f32 image
+/// Performs resizing on planar f32 image
 ///
 /// Any content preferred to be in linear colorspace or perceptual before resizing,
 /// consider using [crate::linear_f32_to_gamma_image_f32] and [crate::image_f32_to_linear_f32] if required,
@@ -517,9 +859,42 @@ pub fn resize_plane_f32(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<f32>, String> {
+    cropped_resize_plane_f32(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on planar f32 image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_plane_f32] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_plane_f32(
+    source: &[f32],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<f32>, String> {
     resize_floating_point::<f32, f32, f32, 1>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,
@@ -553,9 +928,42 @@ pub fn resize_luma_alpha_f32(
     destination_size: ImageSize,
     resampling_function: ResamplingFunction,
 ) -> Result<Vec<f32>, String> {
+    cropped_resize_luma_alpha_f32(
+        source,
+        source_size,
+        CropRect::from(source_size),
+        destination_size,
+        resampling_function,
+    )
+}
+
+/// Performs a combined resize and crop on Luma-alpha f32 image
+///
+/// Scales down the image defined by `source` and `source_size`, and resamples the
+/// rectangular view of the image given by `source_rect` into the destination image.
+///
+/// See [resize_luma_alpha_f32] for requirements and preprocessing. Additionally:
+///
+/// # Arguments
+///
+/// * `source_rect`: Crop region on the source image
+///
+/// # Limitations
+///
+/// This requires `source_rect` to be nonempty and entirely contained in the rectangle between
+/// (0, 0) and `source_size`.
+///
+pub fn cropped_resize_luma_alpha_f32(
+    source: &[f32],
+    source_size: ImageSize,
+    source_rect: CropRect,
+    destination_size: ImageSize,
+    resampling_function: ResamplingFunction,
+) -> Result<Vec<f32>, String> {
     resize_floating_point::<f32, f32, f32, 2>(
         source,
         source_size,
+        source_rect,
         destination_size,
         8,
         resampling_function,

@@ -31,9 +31,15 @@ use rayon::iter::{IndexedParallelIterator, ParallelIterator};
 #[cfg(feature = "rayon")]
 use rayon::prelude::ParallelSliceMut;
 
+use crate::image_size::FractIndex;
+
 pub(crate) fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
     src: &[T],
+    src_x_start: FractIndex,
+    src_x_end: FractIndex,
     src_width: usize,
+    src_y_start: FractIndex,
+    src_y_end: FractIndex,
     src_height: usize,
     dst: &mut [T],
     dst_width: usize,
@@ -41,8 +47,19 @@ pub(crate) fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
 ) {
     const SHIFT: i32 = 32;
 
-    let k_x: u64 = ((src_width as u64) << SHIFT) / dst_width as u64;
-    let k_y: u64 = ((src_height as u64) << SHIFT) / dst_height as u64;
+    assert!(src_x_start <= src_x_end && src_x_end <= FractIndex::from(src_width));
+    assert!(src_y_start <= src_y_end && src_y_end <= FractIndex::from(src_height));
+
+    let b_x = ((src_x_start.int as u64) << SHIFT) + src_x_start.frac as u64;
+    let b_y = ((src_y_start.int as u64) << SHIFT) + src_y_start.frac as u64;
+
+    let l_x = (((src_x_end.int - src_x_start.int) as u64) << SHIFT) + src_x_end.frac as u64
+        - src_x_start.frac as u64;
+    let l_y = (((src_y_end.int - src_y_start.int) as u64) << SHIFT) + src_y_end.frac as u64
+        - src_y_start.frac as u64;
+
+    let k_x: u64 = l_x / dst_width as u64;
+    let k_y: u64 = l_y / dst_height as u64;
     let k_x_half: u64 = k_x >> 1;
     let k_y_half: u64 = k_y >> 1;
 
@@ -60,10 +77,10 @@ pub(crate) fn resize_nearest<T: Copy + Send + Sync, const CHANNELS: usize>(
     }
 
     iter.enumerate().for_each(|(y, dst_row)| {
-        let src_y = ((y as u64 * k_y + k_y_half) >> SHIFT) as usize;
+        let src_y = ((b_y + y as u64 * k_y + k_y_half) >> SHIFT) as usize;
         let src_offset_y = src_y * src_stride;
 
-        let mut src_x_fixed = k_x_half;
+        let mut src_x_fixed = b_x + k_x_half;
         for dst_chunk in dst_row.chunks_exact_mut(CHANNELS) {
             let src_x = (src_x_fixed >> SHIFT) as usize;
 

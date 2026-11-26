@@ -31,7 +31,7 @@ use crate::fixed_point_dispatch::{
     convolve_column_fixed_point, convolve_row_fixed_point, convolve_trampoline_fixed_point,
 };
 use crate::handler_provider::{ColumnHandlerFixedPoint, RowHandlerFixedPoint};
-use crate::image_size::ImageSize;
+use crate::image_size::{CropRect, FractIndex, ImageSize};
 use crate::resize_nearest::resize_nearest;
 use crate::sampler::ResamplingFunction;
 use crate::saturate_narrow::SaturateNarrow;
@@ -64,6 +64,7 @@ use std::ops::{AddAssign, Mul};
 pub(crate) fn resize_fixed_point<T, J, const CHANNELS: usize>(
     src: &[T],
     source_size: ImageSize,
+    source_rect: CropRect,
     destination_size: ImageSize,
     bit_depth: u32,
     resampling_function: ResamplingFunction,
@@ -115,9 +116,23 @@ where
     if destination_size.width == 0 || destination_size.height == 0 {
         return Err("Image size must not be zero".to_string());
     }
-
-    if source_size.width == destination_size.width && source_size.height == destination_size.height
+    if !(source_rect.x1 < source_rect.x2 && source_rect.y1 < source_rect.y2) {
+        return Err("Source rectangle must be nonempty".to_string());
+    }
+    if !(source_rect.x2 <= FractIndex::from(source_size.width)
+        && source_rect.y2 <= FractIndex::from(source_size.height))
     {
+        return Err("Source rectangle must be entirely contained by image".to_string());
+    }
+
+    let resample_x = !(source_size.width == destination_size.width
+        && source_rect.x1 == FractIndex::from(0)
+        && source_rect.x2 == FractIndex::from(source_size.width));
+    let resample_y = !(source_size.height == destination_size.height
+        && source_rect.y1 == FractIndex::from(0)
+        && source_rect.y2 == FractIndex::from(source_size.height));
+
+    if !resample_x && !resample_y {
         return Ok(src.to_vec());
     }
 
@@ -126,7 +141,11 @@ where
             vec![T::default(); destination_size.width * destination_size.height * CHANNELS];
         resize_nearest::<T, CHANNELS>(
             src,
+            source_rect.x1,
+            source_rect.x2,
             source_size.width,
+            source_rect.y1,
+            source_rect.y2,
             source_size.height,
             &mut store,
             destination_size.width,
@@ -144,15 +163,18 @@ where
 
     // Both axes are resampled, so the vertical result is only ever read once by the horizontal
     // pass. Keep it in a 4 rows local scratch instead of a full intermediate image.
-    if source_size.height != destination_size.height && source_size.width != destination_size.width
-    {
+    if resample_x && resample_y {
         let vertical_filters = generate_weights::<f32>(
             resampling_function,
+            source_rect.y1,
+            source_rect.y2,
             source_size.height,
             destination_size.height,
         );
         let horizontal_filters = generate_weights::<f32>(
             resampling_function,
+            source_rect.x1,
+            source_rect.x2,
             source_size.width,
             destination_size.width,
         );
@@ -177,9 +199,11 @@ where
 
     let mut transient = vec![];
 
-    if working_slice_size.height != destination_size.height {
+    if resample_y {
         let vertical_filters = generate_weights::<f32>(
             resampling_function,
+            source_rect.y1,
+            source_rect.y2,
             working_slice_size.height,
             destination_size.height,
         );
@@ -202,9 +226,11 @@ where
         working_slice_ref = &transient;
     }
 
-    if working_slice_size.width != destination_size.width {
+    if resample_x {
         let vertical_filters = generate_weights::<f32>(
             resampling_function,
+            source_rect.x1,
+            source_rect.x2,
             working_slice_size.width,
             destination_size.width,
         );
