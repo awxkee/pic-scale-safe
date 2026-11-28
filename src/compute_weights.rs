@@ -96,12 +96,29 @@ where
             }
         };
 
+        // Samples are at pixel centers. Ex. for bilinear scaling,
+        //
+        //  src   0           1           2           3           4
+        //        |           |           |           |           |
+        //  +===========+===========+===========+===========+===========+
+        //
+        //  x-----------------x-----------------x-----------------x
+        //           |                 |                  |
+        //  dst      0                 1                  2
+        //
+        //   w_{0,0} = 0.75     w_{1,1} = 0.25      w_{1,3} = 0.75
+        //   w_{0,1} = 0.25     w_{1,2} = 0.75      w_{1,4} = 0.25
+
         for (i, bound) in bounds.iter_mut().enumerate() {
             let center_x = ((i.as_() + 0.5.as_()) * scale).min(in_size.as_());
             let mut weights_sum: T = 0f32.as_();
 
-            let start: usize = (center_x - filter_radius).floor().max(0f32.as_()).as_();
-            let end: usize = (center_x + filter_radius)
+            // All input samples < filter_radius away from center_x
+            let start: usize = (center_x - filter_radius + 0.5.as_())
+                .floor()
+                .max(0f32.as_())
+                .as_();
+            let end: usize = (center_x + filter_radius - 0.5.as_())
                 .ceil()
                 .min(in_size.as_())
                 .min(start.as_() + kernel_size.as_())
@@ -248,6 +265,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, BTreeSet};
+
     use super::*;
 
     #[test]
@@ -259,6 +278,7 @@ mod tests {
             ResamplingFunction::Bartlett,
             ResamplingFunction::BartlettHann,
             ResamplingFunction::Lanczos3Jinc,
+            ResamplingFunction::Area,
         ];
         for function in functions {
             for (in_size, out_size) in [(100usize, 37usize), (37, 100), (256, 256), (5, 1)] {
@@ -273,6 +293,68 @@ mod tests {
                     assert!(
                         (sum - 1.0).abs() < 1e-4,
                         "{function:?} {in_size}->{out_size}: window {i} sums to {sum}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn filter_symmetry() {
+        // These resampling functions are all stable, in that small position errors should only
+        // slightly affect the weights.
+        let functions = [
+            ResamplingFunction::Bilinear,
+            ResamplingFunction::Lanczos3,
+            ResamplingFunction::Gaussian,
+            ResamplingFunction::Area,
+        ];
+        for function in functions {
+            for (in_size, out_size) in [(16, 32), (100, 37), (37, 100), (5, 1)] {
+                let filter = generate_weights::<f64>(function, in_size, out_size);
+
+                for i in 0..out_size {
+                    let j = out_size - 1 - i;
+                    let fwd_weights =
+                        &filter.weights[i * filter.kernel_size..(i + 1) * filter.kernel_size];
+                    let fwd_bounds = filter.bounds[i];
+                    let rev_weights =
+                        &filter.weights[j * filter.kernel_size..(j + 1) * filter.kernel_size];
+                    let rev_bounds = filter.bounds[j];
+                    let fwd_map: BTreeMap<usize, f64> = (fwd_bounds.start
+                        ..fwd_bounds.start + fwd_bounds.size)
+                        .into_iter()
+                        .zip(fwd_weights.iter().copied())
+                        .collect();
+                    let rev_map: BTreeMap<usize, f64> = (rev_bounds.start
+                        ..rev_bounds.start + rev_bounds.size)
+                        .into_iter()
+                        .map(|x| in_size - 1 - x)
+                        .zip(rev_weights.iter().copied())
+                        .collect();
+
+                    let keys: BTreeSet<usize> =
+                        fwd_map.keys().chain(rev_map.keys()).copied().collect();
+
+                    let mut missing_mass = 0.0;
+                    for k in keys {
+                        let f = fwd_map.get(&k).copied();
+                        let r = rev_map.get(&k).copied();
+                        if let (Some(f), Some(r)) = (f, r) {
+                            assert!(f - r <= 0.01,  "{}->{} with {:?}: symmetry violation, discrepancy at {}: {:?} {:?}",
+                                    in_size, out_size, function, k, fwd_map, rev_map);
+                        } else {
+                            missing_mass += f.unwrap_or(0.0).abs() + r.unwrap_or(0.0).abs();
+                        }
+                    }
+                    assert!(
+                        missing_mass <= 0.1,
+                        "{}->{} with {:?}: symmetry violation, filter misalignment: {:?} {:?}",
+                        in_size,
+                        out_size,
+                        function,
+                        fwd_map,
+                        rev_map
                     );
                 }
             }
