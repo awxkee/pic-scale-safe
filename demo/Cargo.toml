@@ -1,0 +1,12 @@
+[package]
+name = "demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "4.6.9"
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "tiff", "pnm"] }
+pic-scale-safe = {path = "../", features = []}
+
+[[bin]]
+name = "scale"
